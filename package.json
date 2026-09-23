@@ -12,7 +12,8 @@
   },
   "license": "MIT",
   "author": "andresdanielmtz",
-  "type": "module",
+  "module": "CommonJS",
+  "moduleResolution": "Node10",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
