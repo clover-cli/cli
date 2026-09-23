@@ -1,0 +1,36 @@
+{
+  "name": "clover-cli",
+  "version": "1.0.0",
+  "description": "improving the cloud ecosystem",
+  "homepage": "https://github.com/clover-cli/cli#readme",
+  "bugs": {
+    "url": "https://github.com/clover-cli/cli/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clover-cli/cli.git"
+  },
+  "license": "MIT",
+  "author": "andresdanielmtz",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev:run": "npm run build && npm run start"
+  },
+  "dependencies": {
+    "yargs": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/yargs": "^17.0.35",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}
