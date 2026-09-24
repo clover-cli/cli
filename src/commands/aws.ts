@@ -7,7 +7,7 @@ import {
     saveAwsCredentials,
 } from '../db';
 import { getAwsClientConfig, verifyAwsCredentials } from '../provider/aws';
-import { askUser, mask } from '../utils';
+import { askUser, maskString } from '../utils';
 
 const profileOption = {
     type: 'string',
@@ -81,7 +81,7 @@ const awsCommand: CommandModule = {
                 }
                 console.table(rows.map((r) => ({
                     profile: r.profile,
-                    accessKeyId: mask(r.access_key_id),
+                    accessKeyId: maskString(r.access_key_id),
                     region: r.region,
                     account: r.account_id,
                     savedAt: r.created_at,

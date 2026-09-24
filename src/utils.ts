@@ -25,6 +25,10 @@ export function askUser(question: string, { hidden: hideInput = false } = {}): P
 }
 
 /** Show only the last 4 characters of a secret, e.g. "****************WXYZ". */
-export function mask(value: string): string {
-    return value.length <= 4 ? '****' : '*'.repeat(value.length - 4) + value.slice(-4);
+export function maskString(value: string): string {
+    if (value.length <= 4) {
+        return '****'
+    }
+    // Repeat * per char + the last 4 characters
+    return "*".repeat(value.length - 4) + value.slice(-4);
 }
