@@ -7,7 +7,7 @@ import {
     saveAwsCredentials,
 } from '../db';
 import { getAwsClientConfig, verifyAwsCredentials } from '../provider/aws';
-import { ask, mask } from '../utils';
+import { askUser, mask } from '../utils';
 
 const profileOption = {
     type: 'string',
@@ -34,9 +34,9 @@ const awsCommand: CommandModule = {
             }),
             handler: async (argv) => {
                 // Anything not given as a flag is asked interactively.
-                const accessKeyId = (argv['access-key-id'] as string | undefined) || await ask('AWS Access Key ID: ');
-                const secretAccessKey = (argv['secret-access-key'] as string | undefined) || await ask('AWS Secret Access Key: ', { hidden: true });
-                const region = (argv.region as string | undefined) || await ask('Region [us-east-1]: ') || 'us-east-1';
+                const accessKeyId = (argv['access-key-id'] as string | undefined) || await askUser('AWS Access Key ID: ');
+                const secretAccessKey = (argv['secret-access-key'] as string | undefined) || await askUser('AWS Secret Access Key: ', { hidden: true });
+                const region = (argv.region as string | undefined) || await askUser('Region [us-east-1]: ') || 'us-east-1';
                 const sessionToken = argv['session-token'] as string | undefined;
                 const profile = argv.profile as string;
 

@@ -6,7 +6,7 @@ import readline from 'node:readline';
  * ?? THis can probably be translated into the library's functionality.
  * ?? Though I am not entirely sure..
  */
-export function ask(question: string, { hidden = false } = {}): Promise<string> {
+export function askUser(question: string, { hidden = false } = {}): Promise<string> {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
 
     if (hidden) {
