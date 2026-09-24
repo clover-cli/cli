@@ -29,3 +29,5 @@ Thumbs.db
 
 # Test coverage
 coverage/
+# Local credentials database (contains secrets)
+db/*.sqlite
