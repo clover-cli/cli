@@ -3,13 +3,11 @@ import readline from 'node:readline';
 /**
  * Ask the user a question in the terminal.
  * With `hidden: true` the typed characters are not echoed (useful for secrets).
- * ?? THis can probably be translated into the library's functionality.
- * ?? Though I am not entirely sure..
  */
-export function askUser(question: string, { hidden = false } = {}): Promise<string> {
+export function askUser(question: string, { hidden: hideInput = false } = {}): Promise<string> {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
 
-    if (hidden) {
+    if (hideInput) {
         // Swallow echoed characters, but still print the question itself.
         const output = rl as unknown as { _writeToOutput: (s: string) => void };
         output._writeToOutput = (s: string) => {
