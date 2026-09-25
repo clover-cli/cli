@@ -23,6 +23,7 @@
     "dev:run": "npm run build && npm run start"
   },
   "dependencies": {
+    "@aws-sdk/client-sts": "^3.1139.0",
     "yargs": "^18.2.0"
   },
   "devDependencies": {

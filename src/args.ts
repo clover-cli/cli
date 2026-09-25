@@ -1,18 +1,15 @@
 import yargs from 'yargs';
+import awsCommand from './commands/aws/aws';
+
 /**
- * Argument definitions.
- * ?? This could potentially be set on a separate file.
+ * Argument and command definitions.
+ * Each provider's commands live in src/commands/<provider>/<provider>.ts
  */
-const argv = yargs(process.argv.slice(2)).options({
-    a: {
-        type: 'boolean', default: false
-    },
-    b: {
-        type: 'number', default: false
-    },
-    message: {
-        type: 'string', default: false
-    }
-}).parseSync();
+const argv = yargs(process.argv.slice(2))
+    .scriptName('clover')
+    .command(awsCommand)
+    .strict()
+    .help()
+    .parse();
 
 export default argv;
