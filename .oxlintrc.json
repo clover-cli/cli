@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "node", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "typescript/no-floating-promises": "error",
+    "typescript/no-unnecessary-type-assertion": "warn"
+  },
+  "env": {
+    "builtin": true,
+    "node": true
+  },
+  "ignorePatterns": ["dist/**", "db/**"],
+  "overrides": [
+    {
+      "files": ["test/**"],
+      "rules": {
+        "vitest/require-mock-type-parameters": "off"
+      }
+    }
+  ]
+}
