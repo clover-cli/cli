@@ -1,6 +1,6 @@
 .TH CLOVER 1 "September 2026" "@clover-cli/cli" "User Commands"
 .SH NAME
-clover \- inspect your cloud accounts from the terminal
+clover \- inspect and manage your cloud accounts from the terminal
 .SH SYNOPSIS
 .B clover aws login
 .RB [ \-\-access\-key\-id
@@ -18,6 +18,12 @@ clover \- inspect your cloud accounts from the terminal
 .br
 .B clover aws logout
 .br
+.B clover aws
+.RB { ec2 | rds | dynamodb | s3 | lambda }
+.I action
+.RI [ name ]
+.RI [ options ]
+.br
 .B clover
 .RB [ \-\-help | \-\-version ]
 .SH DESCRIPTION
@@ -33,10 +39,11 @@ and the AWS SDKs.
 .B clover
 never writes credentials to disk.
 .PP
-Only read access is needed.
-The AWS managed policy
+Read access is enough to inspect the account; the AWS managed policy
 .B ReadOnlyAccess
-is enough.
+covers it.
+Creating, changing and deleting resources needs write access to each
+service used.
 .SH COMMANDS
 .TP
 .B aws login
@@ -84,6 +91,38 @@ environment:
 unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_REGION
 .EE
 .RE
+.TP
+.BI "aws ec2|rds|dynamodb|s3|lambda " action
+Create, list, show, update and delete resources in that service:
+EC2 instances, RDS database instances, DynamoDB tables and items, S3 buckets
+and objects, and Lambda functions.
+Every service has the actions
+.BR create ,
+.BR list ,
+.BR get ,
+.B update
+and
+.BR delete ;
+some have more (for example
+.BR start ,
+.BR stop ,
+.BR invoke ,
+.BR put\-item ,
+.BR upload ).
+Each accepts
+.BI \-\-region " region"\fR,
+.B \-\-output table\fR|\fBjson
+and
+.BI \-\-config " file.json"\fR,
+which reads any option from a JSON file so a whole setup runs as one command.
+Deletes ask for confirmation unless
+.B \-\-yes
+is given, and require it when not run in a terminal.
+Run any action with
+.B \-\-help
+for its options, or see
+.I docs/aws.md
+in the source repository.
 .SH OPTIONS
 .SS "aws login"
 .TP

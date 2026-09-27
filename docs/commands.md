@@ -21,6 +21,14 @@ and SDKs use. Nothing is written to disk.
 | `clover aws whoami` | Check that the credentials in the environment work |
 | `clover aws list-resources` | List resources in the configured region (EC2, RDS, DynamoDB, S3, Lambda, other tagged resources) |
 | `clover aws logout` | Print the `unset` command that removes the credentials |
+| `clover aws ec2 <action>` | Create, list, update and delete EC2 instances |
+| `clover aws rds <action>` | Create, list, update and delete RDS databases |
+| `clover aws dynamodb <action>` | Create, list, update and delete DynamoDB tables and items |
+| `clover aws s3 <action>` | Create, list, update and delete S3 buckets and objects |
+| `clover aws lambda <action>` | Create, list, update, delete and invoke Lambda functions |
+
+See [aws.md](aws.md) for every service action and option, including how to do a whole setup in one
+command with `--config`.
 
 A program can't change its parent shell's environment, so `login` and `logout` print shell commands
 instead. Wrap them in `eval` to apply them to the current shell. Prompts and messages go to stderr,
