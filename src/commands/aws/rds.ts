@@ -10,7 +10,10 @@ import {
     stopDatabase,
     updateDatabase,
     waitForDatabase,
+    type RdsCreateOptions,
 } from '../../provider/aws-services/rds';
+import { ec2Client } from '../../provider/aws-services/ec2';
+import { isMissingDefaultNetwork, restoreDefaultNetwork } from '../../provider/aws-services/network';
 import { action, clientConfig, confirm, info, parseKeyValues, print, serviceBuilder, tagsOption, waitOption, yesOption } from './shared';
 
 const idPositional = { id: { type: 'string', describe: 'Database instance identifier' } } as const;
@@ -43,8 +46,9 @@ const create = action({
         ['$0 aws rds create app-db --engine mysql --class db.t3.small --storage 50 --multi-az', 'A larger MySQL instance'],
     ],
     handler: async (argv) => {
-        const client = rdsClient(clientConfig(argv));
-        let db = await createDatabase(client, argv.id, {
+        const config = clientConfig(argv);
+        const client = rdsClient(config);
+        const options: RdsCreateOptions = {
             engine: argv.engine,
             engineVersion: argv.engineVersion,
             instanceClass: argv.instanceClass,
@@ -61,7 +65,20 @@ const create = action({
             backupRetention: argv.backupRetention,
             deletionProtection: argv.deletionProtection,
             tags: parseKeyValues(argv.tags),
-        });
+        };
+        let db;
+        try {
+            db = await createDatabase(client, argv.id, options);
+        } catch (err) {
+            // Without --subnet-group, RDS uses the default network. If the account doesn't have it, restore it once.
+            if (argv.subnetGroup || !isMissingDefaultNetwork(err)) throw err;
+            info(`There is no default network in ${config.region}. Restoring AWS's default VPC and subnets (free), then retrying...`);
+            const restored = await restoreDefaultNetwork(ec2Client(config));
+            info(restored.vpcCreated
+                ? `Created the default VPC ${restored.vpcId}.`
+                : `Added default subnets in ${restored.subnetsCreated.join(', ') || 'no new zones'} to ${restored.vpcId}.`);
+            db = await createDatabase(client, argv.id, options);
+        }
         info(`Creating ${argv.id}. This usually takes 5-15 minutes.`);
         if (!argv.password) info('The master password is generated and stored in AWS Secrets Manager (see passwordSecret).');
         if (argv.wait) {

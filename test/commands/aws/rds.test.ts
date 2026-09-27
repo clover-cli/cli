@@ -3,9 +3,16 @@ import { getAwsClientConfig } from '../../../src/provider/aws';
 import {
     createDatabase, deleteDatabase, getDatabase, updateDatabase, waitForDatabase,
 } from '../../../src/provider/aws-services/rds';
+import { restoreDefaultNetwork } from '../../../src/provider/aws-services/network';
 import { errored, runCli, testConfig } from '../../helpers';
 
 vi.mock('../../../src/provider/aws-services/rds');
+vi.mock('../../../src/provider/aws-services/network', async (importOriginal) => ({
+    ...await importOriginal<typeof import('../../../src/provider/aws-services/network')>(),
+    restoreDefaultNetwork: vi.fn(),
+}));
+
+const noDefaultSubnet = new Error('No default subnet detected in VPC. Please contact AWS Support to recreate default Subnets.');
 
 describe('clover aws rds', () => {
     it('creates a Postgres database with defaults and waits for it', async () => {
@@ -20,6 +27,29 @@ describe('clover aws rds', () => {
         }));
         expect(waitForDatabase).toHaveBeenCalledWith(undefined, 'app-db', 'available');
         expect(errored()).toContain('Secrets Manager');
+    });
+
+    it('restores the default network and retries when the account has none', async () => {
+        vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
+        vi.mocked(createDatabase).mockRejectedValueOnce(noDefaultSubnet).mockResolvedValueOnce({ id: 'app-db', status: 'creating' });
+        vi.mocked(restoreDefaultNetwork).mockResolvedValue({ vpcId: 'vpc-1', vpcCreated: false, subnetsCreated: ['us-east-1a', 'us-east-1b'] });
+
+        await runCli('aws rds create app-db');
+
+        expect(restoreDefaultNetwork).toHaveBeenCalledOnce();
+        expect(createDatabase).toHaveBeenCalledTimes(2);
+        expect(errored()).toContain('Added default subnets in us-east-1a, us-east-1b to vpc-1.');
+        expect(process.exitCode).toBeUndefined();
+    });
+
+    it('leaves the network alone when a subnet group is given', async () => {
+        vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
+        vi.mocked(createDatabase).mockRejectedValueOnce(noDefaultSubnet);
+
+        await runCli('aws rds create app-db --subnet-group mine');
+
+        expect(restoreDefaultNetwork).not.toHaveBeenCalled();
+        expect(process.exitCode).toBe(1);
     });
 
     it('updates and waits for the change to apply', async () => {

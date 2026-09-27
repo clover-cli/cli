@@ -142,6 +142,10 @@ export const COMMAND_ACTIONS: Record<string, Record<string, string[]>> = {
         create: ['rds:CreateDBInstance', 'rds:AddTagsToResource'],
         // Only without --password: AWS generates the password and keeps it in Secrets Manager.
         'create (generated password)': ['secretsmanager:CreateSecret', 'kms:DescribeKey'],
+        // Only when the account has no default network: create restores it, then retries.
+        'create (restore default network)': [
+            'ec2:DescribeVpcs', 'ec2:CreateDefaultVpc', 'ec2:DescribeAvailabilityZones', 'ec2:DescribeSubnets', 'ec2:CreateDefaultSubnet',
+        ],
         update: ['rds:ModifyDBInstance', 'rds:AddTagsToResource'],
         start: ['rds:StartDBInstance'],
         stop: ['rds:StopDBInstance'],

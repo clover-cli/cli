@@ -200,6 +200,12 @@ clover aws rds create app-db --database app --wait
 clover aws rds get app-db   # endpoint, port and the secret holding the password
 ```
 
+Without `--subnet-group`, RDS puts the database in the account's default network (default VPC and
+subnets). If the region doesn't have one, e.g. *No default subnet detected in VPC*, `create`
+restores AWS's default VPC and subnets (free) and tries again. This needs the EC2 permissions
+`ec2:DescribeVpcs`, `ec2:CreateDefaultVpc`, `ec2:DescribeAvailabilityZones`, `ec2:DescribeSubnets`
+and `ec2:CreateDefaultSubnet` (all in `AmazonEC2FullAccess`).
+
 ### `update <id>`
 
 `--instance-class`, `--storage` (can only grow), `--engine-version`, `--password`,
