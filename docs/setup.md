@@ -47,6 +47,43 @@ mkdir -p db    # local credentials are stored in db/cred.sqlite
 npm run build
 ```
 
+## Using `clover` as a command
+
+To run `clover <command>` from anywhere instead of `node dist/index.js <command>`, link your
+working copy globally:
+
+```sh
+npm run build
+npm link
+```
+
+This creates a global `clover` command that points at this folder, so there's no need to reinstall
+after making changes. Just rebuild with `npm run build`, or keep `npm run dev` running and the
+command always uses the latest code.
+
+Check that it works:
+
+```sh
+which clover     # should point into your Node global bin folder
+clover --help
+```
+
+To remove the link:
+
+```sh
+npm unlink -g @clover-cli/cli
+```
+
+> If `clover` isn't found after linking, your Node global `bin` folder isn't on your `PATH`.
+> Run `npm prefix -g` and add its `bin` subfolder to your `PATH`.
+> (With nvm this is already on your `PATH`.)
+
+If you only want to use the CLI and don't plan to change it, install the published package instead:
+
+```sh
+npm install -g @clover-cli/cli
+```
+
 ## Scripts
 
 | Script | What it does |
@@ -73,10 +110,12 @@ CI (`.github/workflows/ci.yml`) runs `npm run lint`, `npm run build` and `npm te
 ## First run
 
 ```sh
-node dist/index.js aws login           # prompts for key, secret and region
-node dist/index.js aws whoami          # check the saved profile works
-node dist/index.js aws list-resources  # see what's in your account
+clover aws login           # prompts for key, secret and region
+clover aws whoami          # check the saved profile works
+clover aws list-resources  # see what's in your account
 ```
+
+If you haven't run `npm link`, use `node dist/index.js` in place of `clover`.
 
 See [commands.md](commands.md) for every command and option.
 
@@ -92,4 +131,4 @@ const s3 = new S3Client(getAwsClientConfig('default'));
 ## Notes
 
 - `db/*.sqlite` is git-ignored. It holds your secrets, so never commit it.
-- Use `node dist/index.js aws logout --all` to remove every saved credential.
+- Use `clover aws logout --all` to remove every saved credential.
