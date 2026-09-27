@@ -82,7 +82,7 @@ const awsCommand: CommandModule = {
             }),
             handler: async (argv) => {
                 await listResources(argv.profile);
-****            },
+            },
         })
         .demandCommand(1, 'Choose an action: login, list, whoami, logout or list-resources'),
     handler: () => {},
