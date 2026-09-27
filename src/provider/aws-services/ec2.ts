@@ -33,6 +33,9 @@ export function ec2Client(config: AwsClientConfig): EC2Client {
 /**
  * Shorthands for --image. EC2 resolves `resolve:ssm:` image IDs itself, so these always
  * point at the latest AMI in whatever region the command runs in.
+ * Taken directly from:
+ * https://documentation.ubuntu.com/aws/en/latest/aws-how-to/instances/find-ubuntu-images/
+ * https://docs.aws.amazon.com/linux/al2023/ug/ec2.html
  */
 export const IMAGE_ALIASES: Record<string, string> = {
     'al2023': 'resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64',
