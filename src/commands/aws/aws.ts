@@ -9,6 +9,7 @@ import { getAwsClientConfig, verifyAwsCredentials } from '../../provider/aws';
 import { mask } from '../../utils';
 import { profileOption, login, loginOptions } from './login';
 import { logout, logoutOptions } from './logout';
+import { listResources } from './resources';
 
 /**
  * This method identifies and logs out the information of a given profile.
@@ -78,7 +79,17 @@ const awsCommand: CommandModule = {
             builder: (y: Argv) => y.options(logoutOptions),
             handler: logout,
         })
-        .demandCommand(1, 'Choose an action: login, list, whoami or logout'),
+        .command({
+            command: 'list-resources',
+            describe: 'List available and used resources within AWS',
+            builder: (y: Argv) => y.options({
+                profile: profileOption
+            }),
+            handler: async (argv) => {
+                await listResources(argv.profile as string);
+            },
+        })
+        .demandCommand(1, 'Choose an action: login, list, whoami, logout or list-resources'),
     handler: () => {},
 };
 
