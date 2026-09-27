@@ -18,7 +18,7 @@ export async function logout(argv: LogoutArgs): Promise<void> {
         console.log(`Deleted ${count} AWS profile(s).`);
         return;
     }
-    const profile = argv.profile as string;
+    const profile = argv.profile;
     if (!getAwsCredentials(profile)) {
         console.log(`No credentials saved for profile "${profile}".`);
         return;

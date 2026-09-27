@@ -1,4 +1,4 @@
-import type { Argv, ArgumentsCamelCase, CommandModule, InferredOptionTypes, Options } from 'yargs';
+import type { ArgumentsCamelCase, InferredOptionTypes, Options } from 'yargs';
 import { askUser } from '../../utils';
 import { verifyAwsCredentials } from '../../provider/aws';
 import { saveAwsCredentials } from '../../db';

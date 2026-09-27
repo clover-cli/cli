@@ -1,10 +1,5 @@
-import type { Argv, ArgumentsCamelCase, CommandModule, InferredOptionTypes, Options } from 'yargs';
-import {
-    deleteAllAwsCredentials,
-    deleteAwsCredentials,
-    getAwsCredentials,
-    listAwsCredentials,
-} from '../../db';
+import type { Argv, CommandModule } from 'yargs';
+import { listAwsCredentials } from '../../db';
 import { getAwsClientConfig, verifyAwsCredentials } from '../../provider/aws';
 import { mask } from '../../utils';
 import { profileOption, login, loginOptions } from './login';
@@ -69,8 +64,8 @@ const awsCommand: CommandModule = {
             describe: 'Check that a saved profile still works',
             builder: (y: Argv) => y.options({ profile: profileOption }),
             handler: async (argv) => {
-                const profile = argv.profile as string;
-                whoami(profile);
+                const profile = argv.profile;
+                await whoami(profile);
             },
         })
         .command({
@@ -86,7 +81,7 @@ const awsCommand: CommandModule = {
                 profile: profileOption
             }),
             handler: async (argv) => {
-                await listResources(argv.profile as string);
+                await listResources(argv.profile);
             },
         })
         .demandCommand(1, 'Choose an action: login, list, whoami, logout or list-resources'),

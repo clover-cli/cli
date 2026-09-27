@@ -8,7 +8,7 @@ import argv from './args';
  * AWS:
  * node dist/index.js aws login
  */
-Promise.resolve(argv).then((args) => {
+void Promise.resolve(argv).then((args) => {
     if (args.message) {
         console.log(args.message);
     }

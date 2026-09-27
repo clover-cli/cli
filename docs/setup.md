@@ -57,6 +57,8 @@ npm run build
 | `npm run dev:run -- <command>` | Build, then run |
 | `npm test` | Run the tests once |
 | `npm run test:watch` | Re-run the tests on every change |
+| `npm run lint` | Lint `src/` and `test/` with [Oxlint](https://oxc.rs) (rules in `.oxlintrc.json`) |
+| `npm run lint:fix` | Lint and auto-fix what it can |
 
 ## Tests
 
@@ -66,7 +68,7 @@ prompts are mocked in `test/setup.ts`, so tests never touch your real credential
 To test a new command, add `test/commands/<provider>/<command>.test.ts` and run it with
 `runCli('aws <command> --flag value')` from `test/helpers.ts`.
 
-CI (`.github/workflows/ci.yml`) runs `npm run build` and `npm test` on every pull request and push to `main`.
+CI (`.github/workflows/ci.yml`) runs `npm run lint`, `npm run build` and `npm test` on every pull request to `main` and every push to `main`.
 
 ## First run
 

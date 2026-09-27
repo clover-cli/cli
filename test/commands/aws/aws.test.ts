@@ -7,7 +7,7 @@ describe('clover aws', () => {
     });
 
     it('rejects unknown actions', async () => {
-        await expect(runCli('aws deploy')).rejects.toThrow();
+        await expect(runCli('aws deploy')).rejects.toThrow('Unknown argument: deploy');
     });
 
     it('rejects unknown options', async () => {
