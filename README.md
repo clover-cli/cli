@@ -2,9 +2,11 @@
 
 [![npm](https://img.shields.io/npm/v/@clover-cli/cli)](https://www.npmjs.com/package/@clover-cli/cli)
 
-In development...
+CLI tool that simplifies administering cloud-based resources.
 
-# Install
+## Install
+
+Before trying to install the project, you might want to look at the [client](https://github.com/clover-cli/client) version.
 
 Clover is published on npm as [`@clover-cli/cli`](https://www.npmjs.com/package/@clover-cli/cli):
 
