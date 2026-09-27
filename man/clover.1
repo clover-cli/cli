@@ -1,0 +1,225 @@
+.TH CLOVER 1 "September 2026" "@clover-cli/cli" "User Commands"
+.SH NAME
+clover \- inspect your cloud accounts from the terminal
+.SH SYNOPSIS
+.B clover aws login
+.RB [ \-\-access\-key\-id
+.IR id ]
+.RB [ \-\-secret\-access\-key
+.IR secret ]
+.RB [ \-\-session\-token
+.IR token ]
+.RB [ \-\-region
+.IR region ]
+.br
+.B clover aws whoami
+.br
+.B clover aws list\-resources
+.br
+.B clover aws logout
+.br
+.B clover
+.RB [ \-\-help | \-\-version ]
+.SH DESCRIPTION
+.B clover
+connects to your cloud provider and shows what is running in your account.
+AWS is currently the only supported provider.
+.PP
+Credentials are read from the standard AWS environment variables (see
+.BR ENVIRONMENT ),
+the same ones used by
+.BR aws (1)
+and the AWS SDKs.
+.B clover
+never writes credentials to disk.
+.PP
+Only read access is needed.
+The AWS managed policy
+.B ReadOnlyAccess
+is enough.
+.SH COMMANDS
+.TP
+.B aws login
+Verify AWS credentials and print the shell commands that export them.
+Any value not given as an option is asked for interactively; the secret
+access key is not echoed.
+The credentials are checked with STS
+.IR GetCallerIdentity ,
+which needs no IAM permissions.
+.IP
+On success, the
+.B export
+commands are printed to standard output and everything else (prompts and
+status messages) to standard error, so the output can be passed to
+.BR eval .
+When no session token is given,
+.B unset AWS_SESSION_TOKEN
+is printed instead, so a leftover token does not break the new keys.
+Nothing is printed to standard output if verification fails.
+See
+.BR NOTES .
+.TP
+.B aws whoami
+Check that the credentials in the environment work, and print the ARN,
+account ID and region they belong to.
+.TP
+.B aws list\-resources
+List the resources in the account, grouped by service with a count each.
+EC2 instances, RDS instances, DynamoDB tables, S3 buckets and Lambda
+functions are listed directly.
+Other services are found through the Resource Groups Tagging API, which only
+returns resources that have (or once had) tags.
+Everything except S3 is limited to the configured region; S3 buckets are
+listed for the whole account.
+.IP
+If one service cannot be listed (for example, because of a missing IAM
+permission), its row shows the error and the other services are still listed.
+.TP
+.B aws logout
+Print the shell command that removes the AWS credentials from the
+environment:
+.RS
+.PP
+.EX
+unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_REGION
+.EE
+.RE
+.SH OPTIONS
+.SS "aws login"
+.TP
+.BI \-\-access\-key\-id " id"
+AWS access key ID.
+.TP
+.BI \-\-secret\-access\-key " secret"
+AWS secret access key.
+Passing it as an option leaves it in your shell history; leave it out to be
+prompted instead.
+.TP
+.BI \-\-session\-token " token"
+Session token, only needed for temporary credentials.
+Never prompted for.
+.TP
+.BI \-\-region " region"
+Region to use, for example
+.BR eu\-west\-1 .
+Defaults to
+.B us\-east\-1
+when left empty at the prompt.
+.SS "All commands"
+.TP
+.B \-\-help
+Show help for the command and exit.
+.TP
+.B \-\-version
+Show the version number and exit.
+.SH ENVIRONMENT
+.TP
+.B AWS_ACCESS_KEY_ID
+Access key ID.
+Required.
+.TP
+.B AWS_SECRET_ACCESS_KEY
+Secret access key.
+Required.
+.TP
+.B AWS_SESSION_TOKEN
+Session token, for temporary credentials.
+Optional.
+.TP
+.B AWS_REGION
+Region to use.
+Optional.
+.TP
+.B AWS_DEFAULT_REGION
+Used when
+.B AWS_REGION
+is not set.
+If neither is set, the region is
+.BR us\-east\-1 .
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+Missing or rejected credentials, a failed request to AWS, or invalid
+command-line usage.
+.SH EXAMPLES
+Log in interactively and load the credentials into the current shell:
+.PP
+.RS
+.EX
+eval "$(clover aws login)"
+.EE
+.RE
+.PP
+Log in with a given key and region, prompting only for the secret:
+.PP
+.RS
+.EX
+eval "$(clover aws login \-\-access\-key\-id AKIA... \-\-region us\-west\-2)"
+.EE
+.RE
+.PP
+Check the credentials, then list what is in the account:
+.PP
+.RS
+.EX
+clover aws whoami
+clover aws list\-resources
+.EE
+.RE
+.PP
+Use credentials set some other way, without logging in:
+.PP
+.RS
+.EX
+export AWS_ACCESS_KEY_ID=AKIA...
+export AWS_SECRET_ACCESS_KEY=...
+clover aws whoami
+.EE
+.RE
+.PP
+Remove the credentials from the current shell:
+.PP
+.RS
+.EX
+eval "$(clover aws logout)"
+.EE
+.RE
+.SH NOTES
+A program cannot change the environment of the shell that started it.
+That is why
+.B aws login
+and
+.B aws logout
+print shell commands instead of setting the variables themselves, and why
+they are meant to be wrapped in
+.BR eval .
+Running them without
+.B eval
+only prints the commands.
+.PP
+The
+.B eval
+form works in POSIX shells such as
+.BR bash (1)
+and
+.BR zsh (1).
+In other shells, set the printed variables by hand.
+.PP
+To have the credentials in every new shell, export them from your shell
+startup file (for example
+.IR ~/.zshrc )
+or from a per-project
+.I .env
+file loaded by a tool such as
+.BR direnv (1).
+Never commit a file that contains keys.
+.SH SEE ALSO
+.BR aws (1),
+.BR eval (1p)
+.PP
+Documentation: https://github.com/clover-cli/cli/tree/main/docs
+.SH BUGS
+Report bugs at https://github.com/clover-cli/cli/issues
