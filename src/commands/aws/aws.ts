@@ -3,6 +3,11 @@ import { getAwsClientConfig, verifyAwsCredentials } from '../../provider/aws';
 import { login, loginOptions } from './login';
 import { logout } from './logout';
 import { listResources } from './resources';
+import dynamoDbCommand from './dynamodb';
+import ec2Command from './ec2';
+import lambdaCommand from './lambda';
+import rdsCommand from './rds';
+import s3Command from './s3';
 
 /**
  * Checks the credentials in the environment against AWS and prints who they belong to.
@@ -20,10 +25,11 @@ async function whoami() {
 
 /**
  * clover aws <login|whoami|logout|list-resources>
+ * clover aws <ec2|rds|dynamodb|s3|lambda> <action>
  */
 const awsCommand: CommandModule = {
     command: 'aws',
-    describe: 'Manage AWS credentials',
+    describe: 'Manage AWS credentials and resources',
     builder: (yargs: Argv) => yargs
         .command({
             command: 'login',
@@ -46,7 +52,12 @@ const awsCommand: CommandModule = {
             describe: 'List available and used resources within AWS',
             handler: listResources,
         })
-        .demandCommand(1, 'Choose an action: login, whoami, logout or list-resources'),
+        .command(ec2Command)
+        .command(rdsCommand)
+        .command(dynamoDbCommand)
+        .command(s3Command)
+        .command(lambdaCommand)
+        .demandCommand(1, 'Choose an action: login, whoami, logout, list-resources, or a service: ec2, rds, dynamodb, s3, lambda'),
     handler: () => {},
 };
 

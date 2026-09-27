@@ -12,7 +12,7 @@
 3. Open the new user, go to **Security credentials → Create access key**, and pick **Command Line Interface (CLI)**.
 4. Copy the **Access key ID** and **Secret access key**. The secret is only shown once.
 
-Use these values with `aws login`, or set them as [environment variables](commands.md#aws). Clover only reads your account, so read-only access is enough.
+Use these values with `aws login`, or set them as [environment variables](commands.md#aws). Read-only access is enough for `whoami` and listing. To create, change or delete resources, the user also needs write permissions; see [aws.md](aws.md#iam-permissions).
 
 <details>
 <summary>Minimal policy (instead of ReadOnlyAccess)</summary>
