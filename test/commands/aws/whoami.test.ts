@@ -1,0 +1,40 @@
+import { describe, expect, it, vi } from 'vitest';
+import { getAwsClientConfig, verifyAwsCredentials } from '../../../src/provider/aws';
+import { errored, logged, runCli } from '../../helpers';
+
+const config = { region: 'us-east-1', credentials: { accessKeyId: 'AKIA', secretAccessKey: 'SECRET' } };
+
+describe('clover aws whoami', () => {
+    it('prints the identity of the profile', async () => {
+        vi.mocked(getAwsClientConfig).mockReturnValue(config);
+        vi.mocked(verifyAwsCredentials).mockResolvedValue({
+            accountId: '123456789012', arn: 'arn:aws:iam::123456789012:user/test',
+        });
+
+        await runCli('aws whoami --profile work');
+
+        expect(getAwsClientConfig).toHaveBeenCalledWith('work');
+        expect(logged()).toContain('Profile "work": arn:aws:iam::123456789012:user/test (account 123456789012, region us-east-1)');
+    });
+
+    it('reports an error when the profile is not saved', async () => {
+        vi.mocked(getAwsClientConfig).mockImplementation(() => {
+            throw new Error('No AWS credentials stored for profile "missing"');
+        });
+
+        await runCli('aws whoami --profile missing');
+
+        expect(errored()).toContain('No AWS credentials stored');
+        expect(process.exitCode).toBe(1);
+    });
+
+    it('reports an error when AWS rejects the credentials', async () => {
+        vi.mocked(getAwsClientConfig).mockReturnValue(config);
+        vi.mocked(verifyAwsCredentials).mockRejectedValue(new Error('ExpiredToken'));
+
+        await runCli('aws whoami');
+
+        expect(errored()).toContain('ExpiredToken');
+        expect(process.exitCode).toBe(1);
+    });
+});
