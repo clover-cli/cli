@@ -1,17 +1,9 @@
 import { afterEach, beforeEach, vi } from 'vitest';
 
 /**
- * Global mocks: tests never touch the real credentials database (db/cred.sqlite),
- * never call AWS and never wait for terminal input.
+ * Global mocks: tests never call AWS and never wait for terminal input.
  * Configure them per test with vi.mocked(fn).mockReturnValue(...).
  */
-vi.mock('../src/db', () => ({
-    saveAwsCredentials: vi.fn(),
-    getAwsCredentials: vi.fn(),
-    listAwsCredentials: vi.fn(),
-    deleteAwsCredentials: vi.fn(),
-    deleteAllAwsCredentials: vi.fn(),
-}));
 
 vi.mock('../src/provider/aws', () => ({
     verifyAwsCredentials: vi.fn(),

@@ -6,11 +6,11 @@
 
 import { listAwsResources } from "../../provider/aws";
 
-export async function listResources(profile: string) {
+export async function listResources() {
     try {
-        const inventory = await listAwsResources(profile);
+        const inventory = await listAwsResources();
 
-        console.log(`Resources for profile "${profile}" (region ${inventory.region}):`);
+        console.log(`Resources in region ${inventory.region}:`);
         console.table(inventory.services.map((s) => ({
             service: s.service,
             count: s.count,
