@@ -22,6 +22,10 @@ beforeEach(() => {
     vi.spyOn(console, 'table').mockImplementation(() => {});
 });
 
+// Tests may pretend to be (or not be) in a terminal to exercise confirmation prompts.
+const stdinIsTTY = process.stdin.isTTY;
+
 afterEach(() => {
     process.exitCode = undefined;
+    process.stdin.isTTY = stdinIsTTY;
 });
