@@ -6,6 +6,9 @@
   "bugs": {
     "url": "https://github.com/clover-cli/cli/issues"
   },
+  "bin": {
+    "clover": "dist/index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/clover-cli/cli.git"
