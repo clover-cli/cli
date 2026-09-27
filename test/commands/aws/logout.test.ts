@@ -1,42 +1,15 @@
-import { describe, expect, it, vi } from 'vitest';
-import { deleteAllAwsCredentials, deleteAwsCredentials, getAwsCredentials } from '../../../src/db';
-import type { AwsCredentialRow } from '../../../src/db';
+import { describe, expect, it } from 'vitest';
 import { logged, runCli } from '../../helpers';
 
 describe('clover aws logout', () => {
-    it('deletes the "default" profile when no profile is given', async () => {
-        vi.mocked(getAwsCredentials).mockReturnValue({ profile: 'default' } as AwsCredentialRow);
-
+    it('prints the command that unsets every AWS variable', async () => {
         await runCli('aws logout');
 
-        expect(deleteAwsCredentials).toHaveBeenCalledWith('default');
-        expect(logged()).toContain('Deleted AWS credentials for profile "default"');
+        expect(logged()).toBe('unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_REGION');
     });
 
-    it('deletes the given profile', async () => {
-        vi.mocked(getAwsCredentials).mockReturnValue({ profile: 'work' } as AwsCredentialRow);
-
-        await runCli('aws logout --profile work');
-
-        expect(deleteAwsCredentials).toHaveBeenCalledWith('work');
-    });
-
-    it('does nothing when the profile does not exist', async () => {
-        vi.mocked(getAwsCredentials).mockReturnValue(undefined);
-
-        await runCli('aws logout --profile missing');
-
-        expect(deleteAwsCredentials).not.toHaveBeenCalled();
-        expect(logged()).toContain('No credentials saved for profile "missing"');
-    });
-
-    it('deletes every profile with --all', async () => {
-        vi.mocked(deleteAllAwsCredentials).mockReturnValue(3);
-
-        await runCli('aws logout --all');
-
-        expect(deleteAllAwsCredentials).toHaveBeenCalled();
-        expect(deleteAwsCredentials).not.toHaveBeenCalled();
-        expect(logged()).toContain('Deleted 3 AWS profile(s)');
+    it('no longer accepts --profile or --all', async () => {
+        await expect(runCli('aws logout --profile work')).rejects.toThrow('Unknown argument');
+        await expect(runCli('aws logout --all')).rejects.toThrow('Unknown argument');
     });
 });

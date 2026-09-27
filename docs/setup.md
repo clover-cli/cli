@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Node.js 22.13 or newer (uses the built-in `node:sqlite` module)
+- Node.js 22.13 or newer
 - An AWS access key and secret key ([how to get them](#getting-aws-credentials))
 
 ## Getting AWS credentials
@@ -12,7 +12,7 @@
 3. Open the new user, go to **Security credentials → Create access key**, and pick **Command Line Interface (CLI)**.
 4. Copy the **Access key ID** and **Secret access key**. The secret is only shown once.
 
-Use these values with `aws login`. Clover only reads your account, so read-only access is enough.
+Use these values with `aws login`, or set them as [environment variables](commands.md#aws). Clover only reads your account, so read-only access is enough.
 
 <details>
 <summary>Minimal policy (instead of ReadOnlyAccess)</summary>
@@ -43,7 +43,6 @@ Use these values with `aws login`. Clover only reads your account, so read-only 
 git clone https://github.com/clover-cli/cli.git
 cd cli
 npm install
-mkdir -p db    # local credentials are stored in db/cred.sqlite
 npm run build
 ```
 
@@ -88,7 +87,7 @@ npm install -g @clover-cli/cli
 
 | Script | What it does |
 | --- | --- |
-| `npm run build` | Compile `src/` into `dist/` |
+| `npm run build` | Clear `dist/`, then compile `src/` into it |
 | `npm run dev` | Recompile on every change |
 | `npm start -- <command>` | Run the compiled CLI |
 | `npm run dev:run -- <command>` | Build, then run |
@@ -99,8 +98,8 @@ npm install -g @clover-cli/cli
 
 ## Tests
 
-Tests live in `test/` and use [Vitest](https://vitest.dev). The database, AWS and terminal
-prompts are mocked in `test/setup.ts`, so tests never touch your real credentials or account.
+Tests live in `test/` and use [Vitest](https://vitest.dev). AWS and terminal prompts are mocked
+in `test/setup.ts`, so tests never touch your real account.
 
 To test a new command, add `test/commands/<provider>/<command>.test.ts` and run it with
 `runCli('aws <command> --flag value')` from `test/helpers.ts`.
@@ -110,8 +109,8 @@ CI (`.github/workflows/ci.yml`) runs `npm run lint`, `npm run build` and `npm te
 ## First run
 
 ```sh
-clover aws login           # prompts for key, secret and region
-clover aws whoami          # check the saved profile works
+eval "$(clover aws login)"  # prompts for key, secret and region, then exports them
+clover aws whoami          # check the credentials work
 clover aws list-resources  # see what's in your account
 ```
 
@@ -119,16 +118,17 @@ If you haven't run `npm link`, use `node dist/index.js` in place of `clover`.
 
 See [commands.md](commands.md) for every command and option.
 
-## Using a saved profile in code
+## Using the credentials in code
 
 ```ts
 import { S3Client } from '@aws-sdk/client-s3';
 import { getAwsClientConfig } from './provider/aws';
 
-const s3 = new S3Client(getAwsClientConfig('default'));
+const s3 = new S3Client(getAwsClientConfig()); // reads the AWS_* environment variables
 ```
 
 ## Notes
 
-- `db/*.sqlite` is git-ignored. It holds your secrets, so never commit it.
-- Use `clover aws logout --all` to remove every saved credential.
+- Credentials only live in your shell's environment. Never commit a `.env` file with keys in it
+  (`.env` is git-ignored).
+- Use `eval "$(clover aws logout)"` to remove them from the current shell.

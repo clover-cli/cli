@@ -3,16 +3,17 @@ import readline from 'node:readline';
 /**
  * Ask the user a question in the terminal.
  * With `hidden: true` the typed characters are not echoed (useful for secrets).
+ * The question is written to stderr, so stdout stays clean for `eval "$(clover aws login)"`.
  */
 export function askUser(question: string, { hidden: hideInput = false } = {}): Promise<string> {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
+    const rl = readline.createInterface({ input: process.stdin, output: process.stderr, terminal: true });
 
     if (hideInput) {
         // Swallow echoed characters, but still print the question itself.
         const output = rl as unknown as { _writeToOutput: (s: string) => void };
         output._writeToOutput = (s: string) => {
-            if (s.startsWith(question)) process.stdout.write(question);
-            else if (s.includes('\n') || s.includes('\r')) process.stdout.write('\n');
+            if (s.startsWith(question)) process.stderr.write(question);
+            else if (s.includes('\n') || s.includes('\r')) process.stderr.write('\n');
         };
     }
 
