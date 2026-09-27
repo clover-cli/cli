@@ -19,7 +19,11 @@
   "moduleResolution": "Node10",
   "main": "dist/index.js",
   "files": [
-    "dist"
+    "dist",
+    "man"
+  ],
+  "man": [
+    "./man/clover.1"
   ],
   "publishConfig": {
     "access": "public"
