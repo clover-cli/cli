@@ -15,9 +15,9 @@ describe('clover aws list-resources', () => {
             total: 1,
         });
 
-        await runCli('aws list-resources --profile work');
+        await runCli('aws list-resources');
 
-        expect(listAwsResources).toHaveBeenCalledWith('work');
+        expect(logged()).toContain('Resources in region us-east-1:');
         expect(console.table).toHaveBeenCalledWith([
             { service: 'EC2', count: 0 },
             { service: 'S3', count: 1 },
@@ -28,11 +28,15 @@ describe('clover aws list-resources', () => {
     });
 
     it('reports an error when resources cannot be listed', async () => {
-        vi.mocked(listAwsResources).mockRejectedValue(new Error('No AWS credentials stored for profile "default"'));
+        vi.mocked(listAwsResources).mockRejectedValue(new Error('No AWS credentials found.'));
 
         await runCli('aws list-resources');
 
-        expect(errored()).toContain('No AWS credentials stored');
+        expect(errored()).toContain('No AWS credentials found');
         expect(process.exitCode).toBe(1);
+    });
+
+    it('no longer accepts --profile', async () => {
+        await expect(runCli('aws list-resources --profile work')).rejects.toThrow('Unknown argument');
     });
 });

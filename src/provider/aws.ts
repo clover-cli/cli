@@ -6,7 +6,7 @@ import { LambdaClient, paginateListFunctions } from '@aws-sdk/client-lambda';
 import { RDSClient, paginateDescribeDBInstances } from '@aws-sdk/client-rds';
 import { ResourceGroupsTaggingAPIClient, paginateGetResources } from '@aws-sdk/client-resource-groups-tagging-api';
 import { S3Client, paginateListBuckets } from '@aws-sdk/client-s3';
-import { getAwsCredentials } from '../db';
+import { readAwsEnv } from '../credentials';
 
 export interface AwsLogin {
     accessKeyId: string;
@@ -44,22 +44,25 @@ export interface AwsClientConfig {
 }
 
 /**
- * Returns a config object ready to pass to any AWS SDK client, built from a stored profile.
+ * Returns a config object ready to pass to any AWS SDK client, built from the
+ * AWS_* environment variables (see src/credentials.ts).
  *
  * Example:
- *   const s3 = new S3Client(getAwsClientConfig('default'));
+ *   const s3 = new S3Client(getAwsClientConfig());
  */
-export function getAwsClientConfig(profile = 'default'): AwsClientConfig {
-    const row = getAwsCredentials(profile);
-    if (!row) {
-        throw new Error(`No AWS credentials stored for profile "${profile}". Run: clover aws login --profile ${profile}`);
+export function getAwsClientConfig(env: NodeJS.ProcessEnv = process.env): AwsClientConfig {
+    const login = readAwsEnv(env);
+    if (!login) {
+        throw new Error(
+            'No AWS credentials found. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, or run: eval "$(clover aws login)"',
+        );
     }
     return {
-        region: row.region,
+        region: login.region,
         credentials: {
-            accessKeyId: row.access_key_id,
-            secretAccessKey: row.secret_access_key,
-            sessionToken: row.session_token ?? undefined,
+            accessKeyId: login.accessKeyId,
+            secretAccessKey: login.secretAccessKey,
+            sessionToken: login.sessionToken,
         },
     };
 }
@@ -188,15 +191,15 @@ async function listOtherTaggedResources(config: AwsClientConfig): Promise<Map<st
 }
 
 /**
- * Lists the resources in the account for a stored profile, grouped by service with a count each.
+ * Lists the resources in the account, grouped by service with a count each.
  * EC2, RDS, DynamoDB, S3 and Lambda are listed directly; any other service is discovered through
- * the Resource Groups Tagging API. Everything except S3 is scoped to the profile's region.
+ * the Resource Groups Tagging API. Everything except S3 is scoped to the configured region.
  *
  * Each service is listed independently: if one fails (e.g. missing IAM permission) its entry
  * carries an `error` and the others are still returned.
  */
-export async function listAwsResources(profile = 'default'): Promise<AwsResourceInventory> {
-    const config = getAwsClientConfig(profile);
+export async function listAwsResources(): Promise<AwsResourceInventory> {
+    const config = getAwsClientConfig();
 
     const dedicated: [string, (c: AwsClientConfig) => Promise<AwsResource[]>][] = [
         ['EC2', listEc2Instances],
