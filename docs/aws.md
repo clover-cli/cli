@@ -444,8 +444,9 @@ Both work for IAM users and for assumed roles. The root user has no policies to 
 
 ## IAM permissions
 
-Listing needs the read-only access described in [setup.md](setup.md#getting-aws-credentials).
-Creating, changing and deleting need write permissions for each service you use. For example, the
+The simplest setup is the `CloverCLI` policy in [setup.md](setup.md#getting-aws-credentials), which
+covers every command. Otherwise, listing needs read-only access, and creating, changing and deleting
+need write permissions for each service you use. For example, the
 AWS managed policies `AmazonEC2FullAccess`, `AmazonRDSFullAccess`, `AmazonDynamoDBFullAccess`,
 `AmazonS3FullAccess` and `AWSLambda_FullAccess`, or a narrower policy with just the actions you
 need. A few extras worth knowing:

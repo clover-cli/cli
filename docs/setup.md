@@ -7,35 +7,211 @@
 
 ## Getting AWS credentials
 
-1. Sign in to the [AWS Console](https://console.aws.amazon.com/) and open **IAM → Users → Create user**.
-2. Give it a name (e.g. `clover-cli`), then choose **Attach policies directly** and select **ReadOnlyAccess**.
-3. Open the new user, go to **Security credentials → Create access key**, and pick **Command Line Interface (CLI)**.
-4. Copy the **Access key ID** and **Secret access key**. The secret is only shown once.
+Clover needs an IAM user with an access key. Setting it up once with the policy below lets every
+`clover aws` command work, so you won't have to come back and add permissions later.
 
-Use these values with `aws login`, or set them as [environment variables](commands.md#aws). Read-only access is enough for `whoami` and listing. To create, change or delete resources, the user also needs write permissions; see [aws.md](aws.md#iam-permissions).
+### 1. Create the policy
+
+1. Sign in to the [AWS Console](https://console.aws.amazon.com/) and open **IAM → Policies → Create policy**.
+2. Switch to the **JSON** tab and paste the policy below.
+3. Click **Next**, name it `CloverCLI`, and click **Create policy**.
 
 <details>
-<summary>Minimal policy (instead of ReadOnlyAccess)</summary>
+<summary>CloverCLI policy</summary>
 
 ```json
 {
   "Version": "2012-10-17",
-  "Statement": [{
-    "Effect": "Allow",
-    "Action": [
-      "ec2:DescribeInstances",
-      "rds:DescribeDBInstances",
-      "dynamodb:ListTables",
-      "s3:ListAllMyBuckets",
-      "lambda:ListFunctions",
-      "tag:GetResources"
-    ],
-    "Resource": "*"
-  }]
+  "Statement": [
+    {
+      "Sid": "ListResources",
+      "Effect": "Allow",
+      "Action": ["tag:GetResources"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "EC2",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeInstances",
+        "ec2:DescribeImages",
+        "ec2:RunInstances",
+        "ec2:CreateTags",
+        "ec2:DeleteTags",
+        "ec2:ModifyInstanceAttribute",
+        "ec2:StartInstances",
+        "ec2:StopInstances",
+        "ec2:RebootInstances",
+        "ec2:TerminateInstances",
+        "ssm:GetParameters"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DefaultNetwork",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeVpcs",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeAvailabilityZones",
+        "ec2:CreateDefaultVpc",
+        "ec2:CreateDefaultSubnet"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "RDS",
+      "Effect": "Allow",
+      "Action": [
+        "rds:DescribeDBInstances",
+        "rds:CreateDBInstance",
+        "rds:ModifyDBInstance",
+        "rds:AddTagsToResource",
+        "rds:StartDBInstance",
+        "rds:StopDBInstance",
+        "rds:RebootDBInstance",
+        "rds:DeleteDBInstance",
+        "rds:CreateDBSnapshot"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "RDSGeneratedPassword",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:CreateSecret",
+        "secretsmanager:TagResource",
+        "kms:DescribeKey"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "RDSServiceLinkedRole",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "*",
+      "Condition": { "StringEquals": { "iam:AWSServiceName": "rds.amazonaws.com" } }
+    },
+    {
+      "Sid": "DynamoDB",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:ListTables",
+        "dynamodb:DescribeTable",
+        "dynamodb:DescribeTimeToLive",
+        "dynamodb:CreateTable",
+        "dynamodb:UpdateTable",
+        "dynamodb:UpdateTimeToLive",
+        "dynamodb:TagResource",
+        "dynamodb:DeleteTable",
+        "dynamodb:PutItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:GetItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Scan"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "S3",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListAllMyBuckets",
+        "s3:CreateBucket",
+        "s3:DeleteBucket",
+        "s3:GetBucketLocation",
+        "s3:GetBucketVersioning",
+        "s3:PutBucketVersioning",
+        "s3:GetBucketTagging",
+        "s3:PutBucketTagging",
+        "s3:ListBucket",
+        "s3:ListBucketVersions",
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Lambda",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:ListFunctions",
+        "lambda:GetFunction",
+        "lambda:CreateFunction",
+        "lambda:UpdateFunctionCode",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:TagResource",
+        "lambda:DeleteFunction",
+        "lambda:InvokeFunction"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "LambdaPassRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "*",
+      "Condition": { "StringEquals": { "iam:PassedToService": "lambda.amazonaws.com" } }
+    },
+    {
+      "Sid": "IAMInspect",
+      "Effect": "Allow",
+      "Action": [
+        "iam:ListAttachedUserPolicies",
+        "iam:ListUserPolicies",
+        "iam:ListGroupsForUser",
+        "iam:ListAttachedGroupPolicies",
+        "iam:ListGroupPolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListRolePolicies",
+        "iam:GetRole",
+        "iam:SimulatePrincipalPolicy"
+      ],
+      "Resource": "*"
+    }
+  ]
 }
 ```
 
 </details>
+
+Each statement matches a part of the CLI, so you can delete the ones for services you don't use.
+`iam:PassRole` is limited to roles handed to Lambda (`lambda create --role`), and
+`iam:CreateServiceLinkedRole` to the role RDS creates for itself the first time you make a database.
+
+### 2. Create the user
+
+1. Open **IAM → Users → Create user** and give it a name (e.g. `clover-cli`).
+2. Choose **Attach policies directly**, search for `CloverCLI`, select it, and create the user.
+
+### 3. Create an access key
+
+1. Open the new user, go to **Security credentials → Create access key**, and pick **Command Line Interface (CLI)**.
+2. Copy the **Access key ID** and **Secret access key**. The secret is only shown once.
+
+Use these values with `aws login`, or set them as [environment variables](commands.md#aws). Then run
+`clover aws iam check` to confirm every command is allowed.
+
+<details>
+<summary>Same steps with the AWS CLI</summary>
+
+Save the policy above as `clover-policy.json`, then, with an admin profile:
+
+```sh
+ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+aws iam create-policy --policy-name CloverCLI --policy-document file://clover-policy.json
+aws iam create-user --user-name clover-cli
+aws iam attach-user-policy --user-name clover-cli --policy-arn "arn:aws:iam::$ACCOUNT:policy/CloverCLI"
+aws iam create-access-key --user-name clover-cli
+```
+
+</details>
+
+> Only need to look around? Attach the AWS managed **ReadOnlyAccess** policy instead. That's enough
+> for `whoami`, `list-resources` and every `list`/`get` command, but not for creating, changing or
+> deleting anything.
 
 ## Install
 
