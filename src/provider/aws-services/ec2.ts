@@ -195,6 +195,12 @@ export async function updateInstance(client: EC2Client, id: string, opts: Ec2Upd
     const progress = opts.onProgress ?? (() => {});
     const tags = { ...opts.tags, ...(opts.name ? { Name: opts.name } : {}) };
 
+    // Check before applying anything so a dead instance doesn't end up half-updated.
+    const current = opts.instanceType ? await getInstance(client, id) : undefined;
+    if (current?.state === 'shutting-down' || current?.state === 'terminated') {
+        throw new Error(`Instance ${id} is ${current.state}; its type can't be changed.`);
+    }
+
     if (Object.keys(tags).length > 0) {
         await client.send(new CreateTagsCommand({ Resources: [id], Tags: toTagList(tags) }));
     }
@@ -208,8 +214,7 @@ export async function updateInstance(client: EC2Client, id: string, opts: Ec2Upd
         }));
     }
 
-    if (opts.instanceType) {
-        const current = await getInstance(client, id);
+    if (opts.instanceType && current) {
         const wasRunning = current.state !== 'stopped';
         if (wasRunning) {
             if (!opts.restart) {
