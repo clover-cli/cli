@@ -1,10 +1,13 @@
 {
-  "name": "clover-cli",
+  "name": "@clover-cli/cli",
   "version": "1.0.0",
   "description": "improving the cloud ecosystem",
   "homepage": "https://github.com/clover-cli/cli#readme",
   "bugs": {
     "url": "https://github.com/clover-cli/cli/issues"
+  },
+  "bin": {
+    "clover": "dist/index.js"
   },
   "repository": {
     "type": "git",
@@ -15,7 +18,12 @@
   "module": "CommonJS",
   "moduleResolution": "Node10",
   "main": "dist/index.js",
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
+    "prepare": "npm run build",
     "test": "vitest run",
     "dev": "tsc --watch",
     "build": "tsc",
