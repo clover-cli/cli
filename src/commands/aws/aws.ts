@@ -5,6 +5,7 @@ import { logout } from './logout';
 import { listResources } from './resources';
 import dynamoDbCommand from './dynamodb';
 import ec2Command from './ec2';
+import iamCommand from './iam';
 import lambdaCommand from './lambda';
 import rdsCommand from './rds';
 import s3Command from './s3';
@@ -25,7 +26,7 @@ async function whoami() {
 
 /**
  * clover aws <login|whoami|logout|list-resources>
- * clover aws <ec2|rds|dynamodb|s3|lambda> <action>
+ * clover aws <ec2|rds|dynamodb|s3|lambda|iam> <action>
  */
 const awsCommand: CommandModule = {
     command: 'aws',
@@ -57,7 +58,8 @@ const awsCommand: CommandModule = {
         .command(dynamoDbCommand)
         .command(s3Command)
         .command(lambdaCommand)
-        .demandCommand(1, 'Choose an action: login, whoami, logout, list-resources, or a service: ec2, rds, dynamodb, s3, lambda'),
+        .command(iamCommand)
+        .demandCommand(1, 'Choose an action: login, whoami, logout, list-resources, or a service: ec2, rds, dynamodb, s3, lambda, iam'),
     handler: () => {},
 };
 

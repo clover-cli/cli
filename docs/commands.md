@@ -26,6 +26,7 @@ and SDKs use. Nothing is written to disk.
 | `clover aws dynamodb <action>` | Create, list, update and delete DynamoDB tables and items |
 | `clover aws s3 <action>` | Create, list, update and delete S3 buckets and objects |
 | `clover aws lambda <action>` | Create, list, update, delete and invoke Lambda functions |
+| `clover aws iam <policies\|check>` | Show your IAM policies, and which Clover commands they allow |
 
 See [aws.md](aws.md) for every service action and option, including how to do a whole setup in one
 command with `--config`.

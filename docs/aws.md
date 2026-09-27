@@ -9,6 +9,7 @@ Clover can create, read, update and delete resources in these AWS services:
 | [DynamoDB](#dynamodb) | `clover aws dynamodb` (or `ddb`) | Tables and items |
 | [S3](#s3) | `clover aws s3` | Buckets and objects |
 | [Lambda](#lambda) | `clover aws lambda` | Functions |
+| [IAM](#iam) | `clover aws iam` | Your own policies and permissions (read-only) |
 
 Every command follows the same shape:
 
@@ -408,6 +409,33 @@ clover aws lambda invoke hello --payload '{"name": "Ada"}' --logs
 The function's return value is printed as JSON. If the function throws, the error is printed and
 the exit code is 1.
 
+## IAM
+
+```sh
+clover aws iam <policies|check>
+```
+
+Read-only: these show what the current credentials may do. Changing permissions stays in the IAM
+console (or your infrastructure as code).
+
+| Action | What it does |
+| --- | --- |
+| `policies` | List the policies that apply to you: attached directly, inline, and through your groups |
+| `check` | Check which Clover commands you're allowed to run (`--service s3 lambda` to check only some) |
+
+```sh
+clover aws iam policies
+clover aws iam check --service lambda
+clover aws iam check --output json | jq -r '.[] | select(.allowed | not) | .missing[]' | sort -u   # everything you're missing
+```
+
+`check` asks the [IAM policy simulator](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_testing-policies.html)
+about every action each command calls. It takes identity policies, permissions boundaries and
+Organizations SCPs into account, and checks against all resources (`*`), so a policy that only
+allows some buckets or tables shows those commands as not allowed.
+
+Both work for IAM users and for assumed roles. The root user has no policies to list.
+
 ## IAM permissions
 
 Listing needs the read-only access described in [setup.md](setup.md#getting-aws-credentials).
@@ -421,7 +449,13 @@ need. A few extras worth knowing:
 - `rds create` without `--password` needs Secrets Manager permissions (`secretsmanager:CreateSecret`,
   `kms:DescribeKey`), which `AmazonRDSFullAccess` doesn't include.
 
-If a permission is missing, the command prints AWS's error and exits with code 1.
+- `iam policies` needs `iam:ListAttachedUserPolicies`, `iam:ListUserPolicies`, `iam:ListGroupsForUser`,
+  `iam:ListAttachedGroupPolicies` and `iam:ListGroupPolicies` (for a role: `iam:ListAttachedRolePolicies`,
+  `iam:ListRolePolicies`). `iam check` needs `iam:SimulatePrincipalPolicy` (and `iam:GetRole` for a role).
+  `IAMReadOnlyAccess` covers them.
+
+Run `clover aws iam check` to see which commands your credentials allow. If a permission is missing,
+the command prints AWS's error and exits with code 1.
 
 ## Exit codes
 
