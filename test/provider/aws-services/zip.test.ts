@@ -8,7 +8,8 @@ import { loadCode, zipPath } from '../../../src/provider/aws-services/zip';
 /** Lists a zip's entries and contents with Python's zipfile, an independent reader. */
 function readZip(zip: Buffer): Record<string, string> {
     const script = 'import sys,zipfile,io,json\nz=zipfile.ZipFile(io.BytesIO(sys.stdin.buffer.read()))\nassert z.testzip() is None\nprint(json.dumps({n: z.read(n).decode() for n in z.namelist()}))';
-    return JSON.parse(execFileSync('python3', ['-c', script], { input: zip, encoding: 'utf8' })) as Record<string, string>;
+    const entries: Record<string, string> = JSON.parse(execFileSync('python3', ['-c', script], { input: zip, encoding: 'utf8' }));
+    return entries;
 }
 
 describe('zipPath', () => {

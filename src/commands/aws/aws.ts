@@ -1,5 +1,6 @@
 import type { Argv, CommandModule } from 'yargs';
 import { getAwsClientConfig, verifyAwsCredentials } from '../../provider/aws';
+import { errorMessage } from '../../utils';
 import { login, loginOptions } from './login';
 import { logout } from './logout';
 import { listResources } from './resources';
@@ -19,7 +20,7 @@ async function whoami() {
         const identity = await verifyAwsCredentials({ ...credentials, region });
         console.log(`${identity.arn} (account ${identity.accountId}, region ${region})`);
     } catch (err) {
-        console.error((err as Error).message);
+        console.error(errorMessage(err));
         process.exitCode = 1;
     }
 }

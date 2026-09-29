@@ -101,8 +101,9 @@ describe('putItems', () => {
         await vi.runAllTimersAsync();
 
         expect(await written).toBe(30);
-        const sizes = sent().map((c) => ((c.input.RequestItems as Record<string, unknown[]>).users).length);
-        expect(sizes).toEqual([25, 1, 5]);
+        expect(sent().map((c) => c.input.RequestItems)).toMatchObject([
+            { users: { length: 25 } }, { users: { length: 1 } }, { users: { length: 5 } },
+        ]);
         vi.useRealTimers();
     });
 });
@@ -116,9 +117,13 @@ describe('getItem', () => {
     });
 });
 
+/** One page of a Scan response. */
+function page(id: string, more: boolean) {
+    return { Items: [{ id: { S: id } }], LastEvaluatedKey: more ? { id: { S: id } } : undefined };
+}
+
 describe('scanItems', () => {
     it('follows pages until the limit is reached', async () => {
-        const page = (id: string, more: boolean) => ({ Items: [{ id: { S: id } }], LastEvaluatedKey: more ? { id: { S: id } } : undefined });
         const { client, sent } = fakeClient<DynamoDBClient>({ ScanCommand: [page('1', true), page('2', true), page('3', false)] });
 
         expect(await scanItems(client, 'users', { limit: 2 })).toEqual([{ id: '1' }, { id: '2' }]);

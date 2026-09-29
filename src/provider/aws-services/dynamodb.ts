@@ -46,10 +46,14 @@ export interface KeyAttribute {
 export function parseKeyAttribute(spec: string): KeyAttribute {
     const [name, type = 'S'] = spec.split(':');
     const upper = type.toUpperCase();
-    if (!name || !['S', 'N', 'B'].includes(upper)) {
+    if (!name || !isScalarAttributeType(upper)) {
         throw new Error(`Invalid key "${spec}". Use name or name:TYPE, where TYPE is S, N or B.`);
     }
-    return { name, type: upper as ScalarAttributeType };
+    return { name, type: upper };
+}
+
+function isScalarAttributeType(type: string): type is ScalarAttributeType {
+    return type === 'S' || type === 'N' || type === 'B';
 }
 
 export interface TableSummary {

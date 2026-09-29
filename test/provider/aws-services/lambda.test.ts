@@ -37,8 +37,8 @@ describe('updateFunction', () => {
             'UpdateFunctionConfigurationCommand', 'UpdateFunctionCodeCommand', 'GetFunctionCommand',
         ]);
         expect(waitUntilFunctionUpdatedV2).toHaveBeenCalledOnce();
-        const zip = sent()[1].input.ZipFile as Buffer;
-        expect(zip.subarray(0, 4)).toEqual(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
+        const zip = sent()[1].input.ZipFile;
+        expect(Buffer.isBuffer(zip) && zip.subarray(0, 4)).toEqual(Buffer.from([0x50, 0x4b, 0x03, 0x04]));
     });
 
     it('only uploads code when no configuration changes', async () => {
@@ -67,7 +67,8 @@ describe('invokeFunction', () => {
         const result = await invokeFunction(client, 'api', { payload: { name: 'Ada' }, logs: true });
 
         expect(sent()[0].input).toMatchObject({ InvocationType: 'RequestResponse', LogType: 'Tail' });
-        expect(Buffer.from(sent()[0].input.Payload as Uint8Array).toString()).toBe('{"name":"Ada"}');
+        const payload = sent()[0].input.Payload;
+        expect(payload instanceof Uint8Array && Buffer.from(payload).toString()).toBe('{"name":"Ada"}');
         expect(result).toEqual({ statusCode: 200, error: undefined, payload: { ok: true }, logs: 'START\nEND' });
     });
 

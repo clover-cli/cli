@@ -1,4 +1,5 @@
 import readline from 'node:readline';
+import { Writable } from 'node:stream';
 
 /**
  * Ask the user a question in the terminal.
@@ -6,23 +7,23 @@ import readline from 'node:readline';
  * The question is written to stderr, so stdout stays clean for `eval "$(clover aws login)"`.
  */
 export function askUser(question: string, { hidden: hideInput = false } = {}): Promise<string> {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stderr, terminal: true });
-
-    if (hideInput) {
-        // Swallow echoed characters, but still print the question itself.
-        const output = rl as unknown as { _writeToOutput: (s: string) => void };
-        output._writeToOutput = (s: string) => {
-            if (s.startsWith(question)) process.stderr.write(question);
-            else if (s.includes('\n') || s.includes('\r')) process.stderr.write('\n');
-        };
-    }
+    // Hidden input echoes into a muted stream; the question and final newline go straight to stderr.
+    const output = hideInput ? new Writable({ write: (_chunk, _encoding, done) => done() }) : process.stderr;
+    const rl = readline.createInterface({ input: process.stdin, output, terminal: true });
+    if (hideInput) process.stderr.write(question);
 
     return new Promise((resolve) => {
-        rl.question(question, (answer) => {
+        rl.question(hideInput ? '' : question, (answer) => {
             rl.close();
+            if (hideInput) process.stderr.write('\n');
             resolve(answer.trim());
         });
     });
+}
+
+/** The message of a caught error, whatever was thrown. */
+export function errorMessage(err: unknown): string {
+    return err instanceof Error ? err.message : String(err);
 }
 
 /** Show only the last 4 characters of a secret, e.g. "****************WXYZ". */

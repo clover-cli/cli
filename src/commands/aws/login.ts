@@ -1,5 +1,5 @@
 import type { ArgumentsCamelCase, InferredOptionTypes, Options } from 'yargs';
-import { askUser } from '../../utils';
+import { askUser, errorMessage } from '../../utils';
 import { verifyAwsCredentials } from '../../provider/aws';
 import { DEFAULT_REGION, exportCommands } from '../../credentials';
 
@@ -37,7 +37,7 @@ export async function login(argv: LoginArgs): Promise<void> {
     try {
         identity = await verifyAwsCredentials({ accessKeyId, secretAccessKey, sessionToken, region });
     } catch (err) {
-        console.error(`Could not connect to AWS: ${(err as Error).message}`);
+        console.error(`Could not connect to AWS: ${errorMessage(err)}`);
         process.exitCode = 1;
         return;
     }

@@ -136,12 +136,16 @@ const remove = action({
 
 // ---- Items ----
 
+function isItem(value: unknown): value is Item {
+    return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
 function asItems(value: unknown): Item[] {
-    const items = Array.isArray(value) ? value : [value];
-    if (items.length === 0 || items.some((i) => !i || typeof i !== 'object' || Array.isArray(i))) {
+    const items: unknown[] = Array.isArray(value) ? value : [value];
+    if (items.length === 0 || !items.every(isItem)) {
         throw new Error('Items must be a JSON object, or an array of objects.');
     }
-    return items as Item[];
+    return items;
 }
 
 function asKey(value: string): Item {

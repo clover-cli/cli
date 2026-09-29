@@ -112,6 +112,8 @@ export async function createInstances(client: EC2Client, opts: Ec2CreateOptions)
 
     const input: RunInstancesCommandInput = {
         ImageId: resolveImage(opts.image),
+        // Any instance type is passed through; AWS validates it, even ones newer than the SDK's list.
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
         InstanceType: opts.instanceType as _InstanceType,
         MinCount: count,
         MaxCount: count,

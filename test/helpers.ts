@@ -40,6 +40,8 @@ export interface SentCommand {
  * (e.g. 'RunInstancesCommand') to what `send` resolves with; a function is called with the input,
  * and an array is used one entry per call (the last entry repeats).
  */
+// T is only returned: it names the SDK client the fake stands in for.
+// oxlint-disable-next-line typescript/no-unnecessary-type-parameters
 export function fakeClient<T>(responses: Record<string, unknown> = {}): { client: T; send: Mock; sent: () => SentCommand[] } {
     const counts = new Map<string, number>();
     const send = vi.fn(async (command: { constructor: { name: string }; input: Record<string, unknown> }) => {
@@ -50,11 +52,12 @@ export function fakeClient<T>(responses: Record<string, unknown> = {}): { client
             counts.set(name, n + 1);
             response = response[Math.min(n, response.length - 1)];
         }
-        if (typeof response === 'function') response = await (response as (input: unknown) => unknown)(command.input);
+        if (typeof response === 'function') response = await response(command.input);
         if (response instanceof Error) throw response;
         return response ?? {};
     });
     const sent = () => send.mock.calls.map(([c]) => ({ name: c.constructor.name, input: c.input }));
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- a fake with only `send` stands in for the real client
     return { client: { send } as unknown as T, send, sent };
 }
 

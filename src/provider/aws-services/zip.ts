@@ -20,7 +20,9 @@ function collect(source: string): Entry[] {
     }
     const entries: Entry[] = [];
     const walk = (dir: string) => {
-        for (const item of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+        const items = readdirSync(dir, { withFileTypes: true });
+        items.sort((a, b) => a.name.localeCompare(b.name));
+        for (const item of items) {
             const full = path.join(dir, item.name);
             if (item.isDirectory()) walk(full);
             else if (item.isFile()) entries.push({ name: path.relative(source, full).split(path.sep).join('/'), data: readFileSync(full) });

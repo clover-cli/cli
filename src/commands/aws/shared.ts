@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import type { ArgumentsCamelCase, Argv, CommandModule, InferredOptionTypes, Options, PositionalOptions } from 'yargs';
-import { askUser } from '../../utils';
+import { askUser, errorMessage } from '../../utils';
 import { getAwsClientConfig, type AwsClientConfig } from '../../provider/aws';
 
 /**
@@ -71,9 +71,11 @@ export function action<
         },
         handler: async (argv) => {
             try {
+                // The builder above declares exactly these options and positionals, which yargs can't infer here.
+                // oxlint-disable-next-line typescript/no-unsafe-type-assertion
                 await spec.handler(argv as unknown as Args<O> & PositionalArgs<P>);
             } catch (err) {
-                console.error((err as Error).message);
+                console.error(errorMessage(err));
                 process.exitCode = 1;
             }
         },
@@ -111,7 +113,7 @@ export function parseJson(value: string, label: string): unknown {
     try {
         return JSON.parse(text);
     } catch (err) {
-        throw new Error(`Invalid JSON for ${label}: ${(err as Error).message}`, { cause: err });
+        throw new Error(`Invalid JSON for ${label}: ${errorMessage(err)}`, { cause: err });
     }
 }
 

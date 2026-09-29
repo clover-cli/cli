@@ -7,6 +7,7 @@ import { RDSClient, paginateDescribeDBInstances } from '@aws-sdk/client-rds';
 import { ResourceGroupsTaggingAPIClient, paginateGetResources } from '@aws-sdk/client-resource-groups-tagging-api';
 import { S3Client, paginateListBuckets } from '@aws-sdk/client-s3';
 import { readAwsEnv } from '../credentials';
+import { errorMessage } from '../utils';
 
 export interface AwsLogin {
     accessKeyId: string;
@@ -221,7 +222,7 @@ export async function listAwsResources(): Promise<AwsResourceInventory> {
         const service = dedicated[i][0];
         return result.status === 'fulfilled'
             ? { service, count: result.value.length, resources: result.value }
-            : { service, count: 0, resources: [], error: (result.reason as Error).message };
+            : { service, count: 0, resources: [], error: errorMessage(result.reason) };
     });
 
     if (otherResult.value) {

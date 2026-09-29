@@ -66,7 +66,7 @@ export interface FunctionCreateOptions {
     handler: string;
     memory?: number;
     timeout?: number;
-    architecture?: string;
+    architecture?: Architecture;
     description?: string;
     environment?: Record<string, string>;
     tags?: Record<string, string>;
@@ -77,11 +77,13 @@ export async function createFunction(client: LambdaClient, name: string, opts: F
         FunctionName: name,
         Role: opts.role,
         Code: { ZipFile: loadCode(opts.code) },
+        // Any runtime is passed through; AWS validates it, even ones newer than the SDK's list.
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
         Runtime: opts.runtime as Runtime,
         Handler: opts.handler,
         MemorySize: opts.memory,
         Timeout: opts.timeout,
-        Architectures: opts.architecture ? [opts.architecture as Architecture] : undefined,
+        Architectures: opts.architecture ? [opts.architecture] : undefined,
         Description: opts.description,
         Environment: opts.environment ? { Variables: opts.environment } : undefined,
         Tags: opts.tags,
@@ -133,6 +135,7 @@ export async function updateFunction(client: LambdaClient, name: string, opts: F
         }
         await client.send(new UpdateFunctionConfigurationCommand({
             FunctionName: name,
+            // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- passed through for AWS to validate, as in createFunction
             Runtime: config.runtime as Runtime | undefined,
             Handler: config.handler,
             MemorySize: config.memory,

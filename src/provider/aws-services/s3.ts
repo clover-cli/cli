@@ -1,7 +1,7 @@
 import { createWriteStream } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { pipeline } from 'node:stream/promises';
-import type { Readable } from 'node:stream';
+import { Readable } from 'node:stream';
 import {
     CreateBucketCommand,
     DeleteBucketCommand,
@@ -55,6 +55,8 @@ export async function createBucket(client: S3Client, name: string, opts: BucketC
         // us-east-1 is the default location and must not be given explicitly.
         CreateBucketConfiguration: opts.region === 'us-east-1'
             ? undefined
+            // Any region string is passed through; AWS validates it, even ones newer than the SDK's list.
+            // oxlint-disable-next-line typescript/no-unsafe-type-assertion
             : { LocationConstraint: opts.region as BucketLocationConstraint },
     }));
     if (opts.versioning || opts.tags) {
@@ -83,7 +85,7 @@ async function getTags(client: S3Client, name: string): Promise<Record<string, s
         const result = await client.send(new GetBucketTaggingCommand({ Bucket: name }));
         return Object.fromEntries((result.TagSet ?? []).map((t) => [t.Key ?? '', t.Value ?? '']));
     } catch (err) {
-        if ((err as Error).name === 'NoSuchTagSet') return {};
+        if (err instanceof Error && err.name === 'NoSuchTagSet') return {};
         throw err;
     }
 }
@@ -203,8 +205,9 @@ export async function uploadObject(
 
 export async function downloadObject(client: S3Client, bucket: string, key: string, file: string): Promise<{ bucket: string; key: string; file: string }> {
     const result = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
-    if (!result.Body) throw new Error(`Object s3://${bucket}/${key} has no body.`);
-    await pipeline(result.Body as Readable, createWriteStream(file));
+    // In Node the body is always a Readable stream.
+    if (!(result.Body instanceof Readable)) throw new Error(`Object s3://${bucket}/${key} has no body.`);
+    await pipeline(result.Body, createWriteStream(file));
     return { bucket, key, file };
 }
 

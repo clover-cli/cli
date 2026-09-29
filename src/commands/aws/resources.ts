@@ -5,6 +5,7 @@
  */
 
 import { listAwsResources } from "../../provider/aws";
+import { errorMessage } from "../../utils";
 
 export async function listResources() {
     try {
@@ -26,7 +27,7 @@ export async function listResources() {
         const active = inventory.services.filter((s) => s.count > 0).length;
         console.log(`\n${inventory.total} resource(s) across ${active} active service(s).`);
     } catch (err) {
-        console.error((err as Error).message);
+        console.error(errorMessage(err));
         process.exitCode = 1;
     }
 }
