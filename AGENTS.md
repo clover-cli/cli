@@ -35,6 +35,8 @@ Run all three before you finish.
 
 Format: `<type>: <what>`, lowercase, one line, no body.
 
+No AI attribution: no `Co-Authored-By` trailers, no "Generated with" lines, in commits or PRs.
+
 - `feat`: a new feature
 - `add`: new commands, services or deps
 - `fix`: a bug fix
