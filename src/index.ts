@@ -1,8 +1,5 @@
 #!/usr/bin/env node
 import argv from './args';
 
-void Promise.resolve(argv).then((args) => {
-    if (args.message) {
-        console.log(args.message);
-    }
-});
+// Parsing the arguments in src/args.ts runs the matching command.
+void argv;
