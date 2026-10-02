@@ -163,6 +163,13 @@ export async function getTable(client: DynamoDBClient, name: string): Promise<Ta
     };
 }
 
+/**
+ * Turns TTL on or off for a table.
+ * @param client The DynamoDB client
+ * @param name The table name
+ * @param attribute The attribute that holds each item's expiry time
+ * @param enabled Turn TTL on (true) or off (false)
+ */
 async function setTtl(client: DynamoDBClient, name: string, attribute: string, enabled = true): Promise<void> {
     await client.send(new UpdateTimeToLiveCommand({
         TableName: name,

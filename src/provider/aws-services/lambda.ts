@@ -11,7 +11,7 @@ import {
     waitUntilFunctionActiveV2,
     waitUntilFunctionUpdatedV2,
     type Architecture,
-    type FunctionConfiguration,
+    type FunctionConfiguration as LambdaFunctionConfiguration,
     type Runtime,
 } from '@aws-sdk/client-lambda';
 import type { AwsClientConfig } from '../aws';
@@ -26,7 +26,7 @@ export function lambdaClient(config: AwsClientConfig): LambdaClient {
     return new LambdaClient(config);
 }
 
-export interface FunctionSummary {
+export interface LambdaFunctionSummary {
     name: string;
     runtime?: string;
     handler?: string;
@@ -41,7 +41,12 @@ export interface FunctionSummary {
     arn?: string;
 }
 
-function summarize(fn: FunctionConfiguration): FunctionSummary {
+/**
+ * This method takes the lambda config and presents it as a summary
+ * @param fn A lambda function configuration
+ * @returns An object representing the summary of the lambda function
+ */
+function summarize(fn: LambdaFunctionConfiguration): LambdaFunctionSummary {
     return {
         name: fn.FunctionName ?? 'unknown',
         runtime: fn.Runtime,
@@ -72,7 +77,7 @@ export interface FunctionCreateOptions {
     tags?: Record<string, string>;
 }
 
-export async function createFunction(client: LambdaClient, name: string, opts: FunctionCreateOptions): Promise<FunctionSummary> {
+export async function createFunction(client: LambdaClient, name: string, opts: FunctionCreateOptions): Promise<LambdaFunctionSummary> {
     const result = await client.send(new CreateFunctionCommand({
         FunctionName: name,
         Role: opts.role,
@@ -91,8 +96,8 @@ export async function createFunction(client: LambdaClient, name: string, opts: F
     return summarize(result);
 }
 
-export async function listFunctions(client: LambdaClient): Promise<FunctionSummary[]> {
-    const functions: FunctionSummary[] = [];
+export async function listFunctions(client: LambdaClient): Promise<LambdaFunctionSummary[]> {
+    const functions: LambdaFunctionSummary[] = [];
     let marker: string | undefined;
     do {
         const page = await client.send(new ListFunctionsCommand({ Marker: marker }));
@@ -102,7 +107,7 @@ export async function listFunctions(client: LambdaClient): Promise<FunctionSumma
     return functions;
 }
 
-export async function getFunction(client: LambdaClient, name: string): Promise<FunctionSummary> {
+export async function getFunction(client: LambdaClient, name: string): Promise<LambdaFunctionSummary> {
     const result = await client.send(new GetFunctionCommand({ FunctionName: name }));
     if (!result.Configuration) throw new Error(`Function ${name} not found.`);
     return summarize(result.Configuration);
@@ -122,7 +127,14 @@ export interface FunctionUpdateOptions {
     tags?: Record<string, string>;
 }
 
-export async function updateFunction(client: LambdaClient, name: string, opts: FunctionUpdateOptions): Promise<FunctionSummary> {
+/**
+ * This method is responsible for updating an existing lambda function with new options.
+ * @param client The lambda client object
+ * @param name The name of the function itself.
+ * @param opts The new options / config
+ * @returns A promise with a summary of the function's new properties
+ */
+export async function updateFunction(client: LambdaClient, name: string, opts: FunctionUpdateOptions): Promise<LambdaFunctionSummary> {
     const { code, tags, environment, removeEnvironment, ...config } = opts;
     const changesEnv = environment !== undefined || removeEnvironment !== undefined;
 
@@ -159,6 +171,11 @@ export async function updateFunction(client: LambdaClient, name: string, opts: F
     return fn;
 }
 
+/**
+ * Deletes a Lambda function, including all of its versions.
+ * @param client The lambda client object
+ * @param name The name of the function we want to remove
+ */
 export async function deleteFunction(client: LambdaClient, name: string): Promise<void> {
     await client.send(new DeleteFunctionCommand({ FunctionName: name }));
 }
