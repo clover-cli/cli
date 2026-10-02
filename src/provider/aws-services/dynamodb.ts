@@ -166,9 +166,9 @@ export async function getTable(client: DynamoDBClient, name: string): Promise<Ta
 /**
  * Send new message and/or set time to live spec to DynamoDB table
  * @param client The DynamoDB client object it will send the message from
- * @param name The name of the TTL to send
- * @param attribute The attributes of the message itself
- * @param enabled Boolean representing whether to show the TTL Spec got enabled or not in that particular table
+ * @param name The name of the table
+ * @param attribute The attributes of the TTL attribute
+ * @param enabled Boolean representing whether to set TTL on or off.
  */
 async function setTtl(client: DynamoDBClient, name: string, attribute: string, enabled = true): Promise<void> {
     await client.send(new UpdateTimeToLiveCommand({
