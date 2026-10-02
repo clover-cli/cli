@@ -31,6 +31,21 @@ Run all three before you finish.
 - On error, just throw. `action()` prints the message and sets exit code 1.
 - Tests never call AWS. Use `fakeClient()` and `runCli()` from `test/helpers.ts`.
 
+## Commits
+
+Format: `<type>: <what>`, lowercase, one line, no body.
+
+- `feat`: a new feature
+- `add`: new commands, services or deps
+- `fix`: a bug fix
+- `fix-docs`, `fix-lint`: fix docs or lint warnings
+- `docs`: documentation
+- `update`: change existing files (docs, tests, readme)
+- `remove`, `move`: delete or move files
+- `ver`: version bump, e.g. `ver: bump to 1.3.0`
+
+Examples: `add: lambda commands`, `fix-docs: src/index`.
+
 ## Adding a service
 
 1. `src/provider/aws-services/<service>.ts`: the SDK calls.
