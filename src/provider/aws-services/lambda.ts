@@ -42,7 +42,7 @@ export interface LambdaFunctionSummary {
 }
 
 /**
- * This method takes the lambda config and presents its as a summary
+ * This method takes the lambda config and presents it as a summary
  * @param fn A lambda function configuration
  * @returns An object representing the summary of the lambda function
  */
@@ -172,7 +172,7 @@ export async function updateFunction(client: LambdaClient, name: string, opts: F
 }
 
 /**
- * This method is responsible for handling removals of lambda versions.
+ * Deletes a Lambda function, including all of its versions.
  * @param client The lambda client object
  * @param name The name of the function we want to remove
  */
