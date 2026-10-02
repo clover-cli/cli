@@ -130,7 +130,7 @@ export interface FunctionUpdateOptions {
 /**
  * This method is responsible for updating an existing lambda function with new options.
  * @param client The lambda client object
- * @param name The name of the version we want to update.
+ * @param name The name of the function itself.
  * @param opts The new options / config
  * @returns A promise with a summary of the function's new properties
  */
@@ -174,7 +174,7 @@ export async function updateFunction(client: LambdaClient, name: string, opts: F
 /**
  * This method is responsible for handling removals of lambda versions.
  * @param client The lambda client object
- * @param name The name of the version we want to remove
+ * @param name The name of the function we want to remove
  */
 export async function deleteFunction(client: LambdaClient, name: string): Promise<void> {
     await client.send(new DeleteFunctionCommand({ FunctionName: name }));
