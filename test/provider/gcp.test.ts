@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GoogleAuth } from 'google-auth-library';
-import { gcpList, gcpRequest, getGcpConfig, verifyGcpCredentials } from '../../src/provider/gcp';
+import { gcpList, gcpRequest, getGcpConfig, listGcpResources, verifyGcpCredentials } from '../../src/provider/gcp';
 import { fakeGcpClient } from '../helpers';
 
 // test/setup.ts mocks this module for the command tests; here the real one is under test.
@@ -63,5 +63,29 @@ describe('gcpRequest and gcpList', () => {
 
         await expect(gcpList(client, 'https://x/things', 'items', { filter: 'f' })).resolves.toEqual([1, 2, 3]);
         expect(sent()[1].params).toEqual({ filter: 'f', pageToken: 't' });
+    });
+});
+
+describe('listGcpResources', () => {
+    it('groups Cloud Asset results by service', async () => {
+        const { client } = fakeGcpClient({
+            'GET :searchAllResources': { results: [
+                { name: '//compute.googleapis.com/vm1', displayName: 'vm1', assetType: 'compute.googleapis.com/Instance', state: 'RUNNING' },
+                { name: '//compute.googleapis.com/d1', displayName: 'd1', assetType: 'compute.googleapis.com/Disk' },
+                { name: '//storage.googleapis.com/b', displayName: 'b', assetType: 'storage.googleapis.com/Bucket' },
+            ] },
+        });
+
+        await expect(listGcpResources(client, 'p')).resolves.toEqual({
+            project: 'p',
+            total: 3,
+            services: [
+                { service: 'compute', count: 2, resources: [
+                    { id: '//compute.googleapis.com/vm1', name: 'vm1', type: 'Instance', state: 'RUNNING' },
+                    { id: '//compute.googleapis.com/d1', name: 'd1', type: 'Disk', state: undefined },
+                ] },
+                { service: 'storage', count: 1, resources: [{ id: '//storage.googleapis.com/b', name: 'b', type: 'Bucket', state: undefined }] },
+            ],
+        });
     });
 });
