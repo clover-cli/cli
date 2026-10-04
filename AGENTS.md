@@ -30,6 +30,7 @@ Run all three before you finish.
 - Ask with `confirm()` before deleting. `--yes` skips the prompt.
 - On error, just throw. `action()` prints the message and sets exit code 1.
 - Tests never call AWS. Use `fakeClient()` and `runCli()` from `test/helpers.ts`.
+- Don't comment code unless it's absolutely necessary (a non-obvious why, not a what). Never add a header comment at the top of a file describing what it does.
 
 ## Commits
 
