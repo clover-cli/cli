@@ -185,3 +185,50 @@ clover gcp firestore scan default --collection users --limit 100   # default 25;
 
 `get-item` exits with code 1 when the document doesn't exist. Integers are stored as `integerValue`,
 other numbers as `doubleValue`; timestamps, references and bytes are read back as strings.
+
+## Storage
+
+```sh
+clover gcp storage <create|list|get|update|delete|objects|upload|download|delete-object>
+```
+
+| Action | What it does |
+| --- | --- |
+| `create <bucket>` | Create a bucket in the command's region |
+| `list` | List every bucket in the project (buckets are global) |
+| `get <bucket>` | Show a bucket's location, storage class, versioning and labels |
+| `update <bucket>` | Change versioning or labels |
+| `delete <bucket>` | Delete a bucket |
+| `objects <bucket>` | List objects (`--prefix`) |
+| `upload <bucket> <file>` | Upload a file (`--key`, default the file name; `--content-type`) |
+| `download <bucket> <key>` | Download an object (`--file`, default the key's file name) |
+| `delete-object <bucket> <key>` | Delete an object (`--yes`) |
+
+### `create <bucket>`
+
+| Option | Description |
+| --- | --- |
+| `--versioning` | Turn on versioning |
+| `--labels` | Labels as `Key=Value` |
+| `--region` | Location to create it in (default `us-central1`) |
+
+```sh
+clover gcp storage create my-app-assets --region europe-west1 --versioning --labels env=prod
+clover gcp storage upload my-app-assets ./dist/index.html --content-type text/html
+```
+
+### `update <bucket>`
+
+| Option | Description |
+| --- | --- |
+| `--versioning` / `--no-versioning` | Turn versioning on or off |
+| `--labels` / `--remove-labels` | Labels to add or change / keys to remove. Other labels are kept |
+
+### `delete <bucket>`
+
+Cloud Storage won't delete a bucket that still has objects in it. `--force` deletes every object and
+every noncurrent version first, then the bucket. Use with care.
+
+```sh
+clover gcp storage delete my-old-bucket --force --yes
+```
