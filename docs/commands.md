@@ -91,6 +91,7 @@ Clover reads GCP credentials from the standard environment variables. Nothing is
 | `clover gcp storage <action>` | Create, list, update and delete Cloud Storage buckets and objects |
 | `clover gcp functions <action>` | Create, list, update, delete and invoke Cloud Functions |
 | `clover gcp iam <policies\|check>` | Show your project roles, and which Clover commands they allow |
+| `clover gcp list-resources` | List every resource in the project, grouped by service (Cloud Asset Inventory) |
 
 ```sh
 eval "$(clover gcp login --project my-project --key-file ~/key.json)"

@@ -1,6 +1,7 @@
 // Connection from the user to GCP
 import { GoogleAuth } from 'google-auth-library';
 import { readGcpEnv, type GcpLogin } from '../credentials';
+import type { AwsResource } from './aws';
 
 /**
  * Auth for the GCP REST APIs, from a service account key file or, without one,
@@ -82,4 +83,18 @@ export async function pollUntil(check: () => Promise<boolean>, what: string, int
         if (Date.now() > deadline) throw new Error(`Timed out waiting for ${what}.`);
         await new Promise((resolve) => setTimeout(resolve, intervalMs));
     }
+}
+
+/** Every resource in the project from Cloud Asset Inventory, grouped by service (e.g. 'compute'). */
+export async function listGcpResources(client: GcpClient, project: string) {
+    const results = await gcpList<{ name: string; displayName?: string; assetType: string; state?: string }>(
+        client, `https://cloudasset.googleapis.com/v1/projects/${project}:searchAllResources`, 'results');
+    const byService = new Map<string, AwsResource[]>();
+    for (const r of results) {
+        const [api, type] = r.assetType.split('/');
+        const service = api.split('.')[0];
+        byService.set(service, [...byService.get(service) ?? [], { id: r.name, name: r.displayName, type, state: r.state }]);
+    }
+    const services = [...byService].map(([service, resources]) => ({ service, count: resources.length, resources }));
+    return { project, services, total: results.length };
 }

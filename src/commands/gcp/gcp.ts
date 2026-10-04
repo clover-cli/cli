@@ -8,6 +8,8 @@ import firestoreCommand from './firestore';
 import storageCommand from './storage';
 import functionsCommand from './functions';
 import iamCommand from './iam';
+import { listResources } from './resources';
+import { gcpCommonOptions } from './shared';
 
 const loginOptions = {
     project: { type: 'string', describe: 'GCP project ID' },
@@ -67,7 +69,7 @@ function logout(): void {
 }
 
 /**
- * clover gcp <login|whoami|logout|compute|sql|firestore|storage|functions|iam>
+ * clover gcp <login|whoami|logout|compute|sql|firestore|storage|functions|iam|list-resources>
  */
 const gcpCommand: CommandModule = {
     command: 'gcp',
@@ -87,7 +89,13 @@ const gcpCommand: CommandModule = {
         .command(storageCommand)
         .command(functionsCommand)
         .command(iamCommand)
-        .demandCommand(1, 'Choose an action: login, whoami, logout, compute, sql, firestore, storage, functions, iam'),
+        .command({
+            command: 'list-resources',
+            describe: 'List every resource in the project (Cloud Asset Inventory)',
+            builder: (y: Argv) => y.options({ project: gcpCommonOptions.project }),
+            handler: listResources,
+        })
+        .demandCommand(1, 'Choose an action: login, whoami, logout, compute, sql, firestore, storage, functions, iam, list-resources'),
     handler: () => {},
 };
 

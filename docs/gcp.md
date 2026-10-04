@@ -318,3 +318,19 @@ clover gcp iam check --output json | jq -r '.[] | select(.allowed | not) | .miss
 `check` uses [testIamPermissions](https://cloud.google.com/resource-manager/reference/rest/v3/projects/testIamPermissions)
 at the project level, so a grant on a single bucket or instance shows that command as not allowed.
 `policies` needs `resourcemanager.projects.getIamPolicy`; `check` needs no extra permission.
+
+## list-resources
+
+```sh
+clover gcp list-resources [--project <id>]
+```
+
+Lists every resource in the project, grouped by service (compute, storage, ...), using Cloud Asset Inventory.
+
+The Cloud Asset API must be enabled in the project:
+
+```sh
+gcloud services enable cloudasset.googleapis.com
+```
+
+Needs the `cloudasset.assets.searchAllResources` permission (e.g. the `roles/cloudasset.viewer` role).
