@@ -3,6 +3,7 @@ import { getGcpConfig, verifyGcpCredentials } from '../../provider/gcp';
 import { gcpExportCommands, gcpUnsetCommand } from '../../credentials';
 import { askUser, errorMessage } from '../../utils';
 import computeCommand from './compute';
+import sqlCommand from './sql';
 
 const loginOptions = {
     project: { type: 'string', describe: 'GCP project ID' },
@@ -62,7 +63,7 @@ function logout(): void {
 }
 
 /**
- * clover gcp <login|whoami|logout|compute>
+ * clover gcp <login|whoami|logout|compute|sql>
  */
 const gcpCommand: CommandModule = {
     command: 'gcp',
@@ -77,7 +78,8 @@ const gcpCommand: CommandModule = {
         .command({ command: 'whoami', describe: 'Check that the credentials in the environment work', handler: whoami })
         .command({ command: 'logout', describe: 'Print the command to remove GCP credentials from the environment', handler: logout })
         .command(computeCommand)
-        .demandCommand(1, 'Choose an action: login, whoami, logout, compute'),
+        .command(sqlCommand)
+        .demandCommand(1, 'Choose an action: login, whoami, logout, compute, sql'),
     handler: () => {},
 };
 

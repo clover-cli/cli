@@ -86,6 +86,7 @@ Clover reads GCP credentials from the standard environment variables. Nothing is
 | `clover gcp whoami` | Check that the credentials in the environment work |
 | `clover gcp logout` | Print the `unset` command that removes the credentials |
 | `clover gcp compute <action>` | Create, list, update, delete, start, stop and reboot Compute Engine instances |
+| `clover gcp sql <action>` | Create, list, update, delete, start, stop and reboot Cloud SQL instances |
 
 ```sh
 eval "$(clover gcp login --project my-project --key-file ~/key.json)"
