@@ -71,3 +71,60 @@ clover gcp compute update web --type e2-standard-2 --restart
 | `--wait` | Wait until deleted |
 
 `start`, `stop` and `reboot` take `--wait`.
+
+## Cloud SQL
+
+```sh
+clover gcp sql <create|list|get|update|delete|start|stop|reboot>
+```
+
+| Action | What it does |
+| --- | --- |
+| `create <id>` | Create a Cloud SQL instance |
+| `list` | List instances |
+| `get <id>` | Show one instance, including its IP and connection name |
+| `update <id>` | Change the tier, storage, public IP, deletion protection or labels |
+| `delete <id>` | Delete an instance and its automated backups |
+| `start <id>` / `stop <id>` / `reboot <id>` | Change the power state |
+
+Every action takes `--project` (default `GOOGLE_CLOUD_PROJECT`) and `--output`. `create` uses
+`--region` (default `us-central1`).
+
+### `create <id>`
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--database-version`, `--engine` | `POSTGRES_16` | `POSTGRES_16`, `MYSQL_8_0`, `SQLSERVER_2022_EXPRESS`, ... |
+| `--tier` | `db-f1-micro` | Machine tier |
+| `--storage` | `10` | Storage in GiB |
+| `--password` | asked | Root user password (`postgres`, `root` or `sqlserver`). Required when not in a terminal |
+| `--public` | GCP default | Give the instance a public IPv4 address |
+| `--deletion-protection` | | Block deletes until turned off |
+| `--labels` | | `Key=Value` (repeatable) |
+| `--wait` | | Wait until the instance is ready (usually 5-15 minutes) |
+
+```sh
+# A Postgres database, ready to connect to when the command returns
+clover gcp sql create app-db --wait
+clover gcp sql get app-db   # IP and connection name
+```
+
+### `update <id>`
+
+`--tier` (restarts the instance), `--storage` (can only grow), `--public`,
+`--deletion-protection` and `--labels` (added to the existing ones), plus `--wait`.
+Changes apply immediately.
+
+```sh
+clover gcp sql update app-db --tier db-g1-small --storage 50 --wait
+```
+
+### `delete <id>`
+
+| Option | Description |
+| --- | --- |
+| `--force` | Turn off deletion protection first |
+| `--yes`, `-y` / `--wait` | |
+
+`start` and `stop` set the activation policy to `ALWAYS` / `NEVER` (a stopped instance still
+bills for storage); `reboot` restarts it. All three take `--wait`.
