@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { describe, expect, it, vi } from 'vitest';
-import { exportCommands, readAwsEnv, unsetCommand } from '../src/credentials';
+import { exportCommands, gcpExportCommands, gcpUnsetCommand, readAwsEnv, readGcpEnv, unsetCommand } from '../src/credentials';
 
 const { getAwsClientConfig } = await vi.importActual<typeof import('../src/provider/aws')>('../src/provider/aws');
 
@@ -69,5 +69,37 @@ describe('getAwsClientConfig', () => {
 
     it('explains how to set credentials when none are found', () => {
         expect(() => getAwsClientConfig({})).toThrow('No AWS credentials found');
+    });
+});
+
+describe('readGcpEnv', () => {
+    it('returns undefined without a project', () => {
+        expect(readGcpEnv({})).toBeUndefined();
+        expect(readGcpEnv({ GOOGLE_APPLICATION_CREDENTIALS: '/key.json' })).toBeUndefined();
+    });
+
+    it('reads the project and an optional key file', () => {
+        expect(readGcpEnv({ GOOGLE_CLOUD_PROJECT: 'p', GOOGLE_APPLICATION_CREDENTIALS: '/key.json' }))
+            .toEqual({ project: 'p', keyFile: '/key.json' });
+        expect(readGcpEnv({ GOOGLE_CLOUD_PROJECT: 'p', GOOGLE_APPLICATION_CREDENTIALS: '' }))
+            .toEqual({ project: 'p', keyFile: undefined });
+    });
+});
+
+/** Evals the GCP exports in a shell that has a stale key file set, and echoes the result. */
+const runGcpExports = (login: { project: string; keyFile?: string }) => execFileSync('sh', ['-c',
+    `${gcpExportCommands(login).join('\n')}\necho "$GOOGLE_CLOUD_PROJECT [\${GOOGLE_APPLICATION_CREDENTIALS-unset}]"`,
+], { encoding: 'utf8', env: { ...process.env, GOOGLE_APPLICATION_CREDENTIALS: 'old' } });
+
+describe('gcpExportCommands', () => {
+    it('round-trips through a real shell and unsets a stale key file', () => {
+        expect(runGcpExports({ project: "my'proj", keyFile: '/a b/key.json' })).toBe("my'proj [/a b/key.json]\n");
+        expect(runGcpExports({ project: 'p' })).toBe('p [unset]\n');
+    });
+
+    it('is undone by gcpUnsetCommand', () => {
+        const exported = gcpExportCommands({ project: 'p', keyFile: 'k' }).map((line) => /^export (\w+)=/.exec(line)?.[1]);
+
+        expect(gcpUnsetCommand().split(' ').slice(1)).toEqual(exported);
     });
 });
