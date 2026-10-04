@@ -85,6 +85,7 @@ Clover reads GCP credentials from the standard environment variables. Nothing is
 | `clover gcp login` | Verify GCP credentials and print the `export` commands that set them (`--project`, `--key-file`) |
 | `clover gcp whoami` | Check that the credentials in the environment work |
 | `clover gcp logout` | Print the `unset` command that removes the credentials |
+| `clover gcp compute <action>` | Create, list, update, delete, start, stop and reboot Compute Engine instances |
 
 ```sh
 eval "$(clover gcp login --project my-project --key-file ~/key.json)"
