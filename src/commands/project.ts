@@ -1,6 +1,6 @@
 import type { Argv, CommandModule } from 'yargs';
 import { createProject, deleteProject, getProject, loadProjects, resolveProject, useProject } from '../projects';
-import { addToProject, listProjectResources, taggingClient } from '../provider/aws-services/tagging';
+import { addToProject, listProjectResources, taggingClient, type ProjectResource } from '../provider/aws-services/tagging';
 import { errorMessage } from '../utils';
 import { action, clientConfig, commonOptions, confirm, info, print, yesOption } from './aws/shared';
 
@@ -31,7 +31,7 @@ const get = action({
     positionals: nameArgument,
     handler: async (argv) => {
         const project = { ...getProject(argv.name), current: loadProjects().current === argv.name };
-        let resources;
+        let resources: ProjectResource[] | undefined;
         try {
             resources = await listProjectResources(taggingClient(clientConfig(argv)), argv.name);
         } catch (err) {
@@ -90,9 +90,6 @@ const add = action({
     },
 });
 
-/**
- * clover project <create|list|get|delete|use|add>
- */
 const projectCommand: CommandModule = {
     command: 'project',
     describe: 'Group resources into projects',
