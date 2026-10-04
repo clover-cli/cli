@@ -128,3 +128,60 @@ clover gcp sql update app-db --tier db-g1-small --storage 50 --wait
 
 `start` and `stop` set the activation policy to `ALWAYS` / `NEVER` (a stopped instance still
 bills for storage); `reboot` restarts it. All three take `--wait`.
+
+## Firestore
+
+```sh
+clover gcp firestore <create|list|get|update|delete|put-item|get-item|delete-item|scan>
+```
+
+| Action | What it does |
+| --- | --- |
+| `create <database>` | Create a database (native mode) in `--region` |
+| `list` | List databases |
+| `get <database>` | Show a database's location, type, deletion protection and point-in-time recovery |
+| `update <database>` | Change deletion protection |
+| `delete <database>` | Delete a database and every document in it |
+| `put-item <database>` | Create or replace one document |
+| `get-item <database>` | Read one document |
+| `delete-item <database>` | Delete one document |
+| `scan <database>` | Read documents from a collection |
+
+Use `default` for the `(default)` database.
+
+### `create <database>`
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--region` | `us-central1` | A region or multi-region, e.g. `nam5`, `eur3` |
+| `--deletion-protection` | | |
+| `--wait` | | Wait for the create operation to finish |
+
+```sh
+clover gcp firestore create default --region nam5 --wait
+clover gcp firestore create users --deletion-protection
+```
+
+### `update <database>`
+
+`--deletion-protection` / `--no-deletion-protection`, `--wait`.
+
+### `delete <database>`
+
+`--force` (turn off deletion protection first), `--yes`, `--wait`.
+
+### Documents
+
+Documents are plain JSON; Clover converts them to and from Firestore's typed values. Every document
+action takes `--collection` (a path like `users` or `users/1/posts`) and, except `scan`, `--id`.
+
+```sh
+clover gcp firestore put-item default --collection users --id 1 --item '{"name": "Ada", "age": 36}'
+clover gcp firestore put-item default --collection users --id 1 --item @ada.json
+clover gcp firestore get-item default --collection users --id 1
+clover gcp firestore delete-item default --collection users --id 1
+clover gcp firestore scan default --collection users --limit 100   # default 25; --limit 0 reads everything
+```
+
+`get-item` exits with code 1 when the document doesn't exist. Integers are stored as `integerValue`,
+other numbers as `doubleValue`; timestamps, references and bytes are read back as strings.
