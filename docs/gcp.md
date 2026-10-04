@@ -232,3 +232,68 @@ every noncurrent version first, then the bucket. Use with care.
 ```sh
 clover gcp storage delete my-old-bucket --force --yes
 ```
+
+## Functions
+
+```sh
+clover gcp functions <create|list|get|update|delete|invoke>
+```
+
+Cloud Functions (2nd gen) in `--region` (default `us-central1`) of `--project` (default
+`GOOGLE_CLOUD_PROJECT`).
+
+| Action | What it does |
+| --- | --- |
+| `create <name>` | Deploy a function |
+| `list` | List functions |
+| `get <name>` | Show a function's configuration |
+| `update <name>` | Change source and/or configuration |
+| `delete <name>` | Delete a function |
+| `invoke <name>` | Call a function over HTTP and print what it returns |
+
+`--source` accepts a `.zip` file as-is, or **a file or folder, which Clover zips for you**, then
+uploads it for Cloud Build. Deploys take a minute or two: without `--wait` Clover prints the
+operation name and returns; with `--wait` it waits for the deployment and prints the function.
+
+### `create <name>`
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--source` | required | `.zip`, file or folder |
+| `--runtime` | `nodejs22` | e.g. `python313`, `go123`, `java21` |
+| `--entry-point` | the name | Exported function to call |
+| `--memory` | `256` | MB |
+| `--timeout` | `60` | Seconds (max 3600) |
+| `--description` | | |
+| `--env` | | Environment variables, `KEY=VALUE` (repeatable) |
+| `--labels` / `--wait` | | Labels as `Key=Value` (repeatable) |
+
+```sh
+clover gcp functions create hello --source index.js --env STAGE=prod --wait
+```
+
+### `update <name>`
+
+`--source`, `--runtime`, `--entry-point`, `--memory`, `--timeout`, `--description`, `--wait`, and:
+
+| Option | Description |
+| --- | --- |
+| `--env KEY=VALUE` | Set variables; the function's other variables are kept |
+| `--remove-env KEY` | Remove variables |
+| `--labels Key=Value` | Set labels; the function's other labels are kept |
+
+Only the given fields change; source and configuration go in one update.
+
+```sh
+clover gcp functions update api --source ./build --memory 512 --env LOG_LEVEL=debug --wait
+```
+
+### `invoke <name>`
+
+| Option | Description |
+| --- | --- |
+| `--payload` | The request body, as JSON or `@file.json` |
+
+Sends a `POST` to the function's URL with your credentials' access token. Functions that allow
+unauthenticated calls always work; a private function may answer 401, since Cloud Run expects an ID
+token: call it with `curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" <uri>`.
