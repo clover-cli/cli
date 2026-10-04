@@ -1,10 +1,8 @@
 import type { Argv, CommandModule } from 'yargs';
 import { createProject, deleteProject, getProject, loadProjects, useProject } from '../projects';
-import { action, confirm, info, print, yesOption } from './aws/shared';
-
-const outputOption = {
-    output: { choices: ['table', 'json'] as const, default: 'table' as const, describe: 'Output format' },
-} as const;
+import { listProjectResources, taggingClient } from '../provider/aws-services/tagging';
+import { errorMessage } from '../utils';
+import { action, clientConfig, commonOptions, confirm, info, print, yesOption } from './aws/shared';
 
 const nameArgument = { name: { type: 'string', describe: 'Project name' } } as const;
 
@@ -29,10 +27,22 @@ const list = action({
 
 const get = action({
     command: 'get <name>',
-    describe: 'Show one project',
+    describe: 'Show one project and its AWS resources in the region',
     positionals: nameArgument,
     handler: async (argv) => {
-        print(argv, { ...getProject(argv.name), current: loadProjects().current === argv.name });
+        const project = { ...getProject(argv.name), current: loadProjects().current === argv.name };
+        let resources;
+        try {
+            resources = await listProjectResources(taggingClient(clientConfig(argv)), argv.name);
+        } catch (err) {
+            info(`Could not list the project's AWS resources: ${errorMessage(err)}`);
+        }
+        if (argv.output === 'json') {
+            print(argv, { ...project, resources });
+            return;
+        }
+        print(argv, project);
+        if (resources) print(argv, resources.map(({ service, id, arn }) => ({ service, id, arn })), 'No resources in this project yet.');
     },
 });
 
@@ -73,7 +83,7 @@ const projectCommand: CommandModule = {
     command: 'project',
     describe: 'Group resources into projects',
     builder: (yargs: Argv) => yargs
-        .options(outputOption)
+        .options({ output: commonOptions.output, region: commonOptions.region })
         .command(create)
         .command(list)
         .command(get)

@@ -40,7 +40,8 @@ Clover command. Nothing is ever prompted for, except a confirmation before delet
 | `--project <name>` | Clover project for this command (default: the current one, see `clover project use`) |
 
 While a project is active, `create` tags the new resource with `clover:project=<name>`, so it
-belongs to that project from any machine.
+belongs to that project from any machine, and `list` shows only that project's resources (found
+through the tag, with `tag:GetResources`). Run `clover project use --none` to see everything again.
 
 ### `--config`: options from a file
 

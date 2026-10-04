@@ -9,7 +9,7 @@ import {
     updateFunction,
     waitForFunction,
 } from '../../provider/aws-services/lambda';
-import { action, createTags, clientConfig, confirm, info, parseJson, parseKeyValues, print, serviceBuilder, tagsOption, waitOption, yesOption } from './shared';
+import { action, createTags, inProject, clientConfig, confirm, info, parseJson, parseKeyValues, print, serviceBuilder, tagsOption, waitOption, yesOption } from './shared';
 
 const namePositional = { name: { type: 'string', describe: 'Function name' } } as const;
 
@@ -62,7 +62,7 @@ const list = action({
     command: 'list',
     describe: 'List Lambda functions',
     handler: async (argv) => {
-        const fns = await listFunctions(lambdaClient(clientConfig(argv)));
+        const fns = await inProject(argv, await listFunctions(lambdaClient(clientConfig(argv))), (fn) => fn.name);
         print(argv, argv.output === 'json' ? fns : fns.map(({ name, runtime, memoryMb, timeoutSec, modified }) => ({
             name, runtime, memoryMb, timeoutSec, modified,
         })), 'No functions found.');

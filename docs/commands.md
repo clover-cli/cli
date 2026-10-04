@@ -108,9 +108,13 @@ Projects group the resources of one app, like Supabase projects. They're saved i
 | --- | --- |
 | `clover project create <name>` | Create a project (lowercase letters, digits and dashes) |
 | `clover project list` | List projects; `current` marks the one in use |
-| `clover project get <name>` | Show one project |
+| `clover project get <name>` | Show one project and its AWS resources in the region (`--region` to pick another) |
 | `clover project use <name>` | Make it the current project (`--none` to clear) |
 | `clover project delete <name>` | Delete the project. Its resources are kept |
+
+While a project is current, `clover aws <service> create` tags new resources with
+`clover:project=<name>` and `clover aws <service> list` shows only that project's resources.
+`--project <name>` picks another project for one command.
 
 ```sh
 clover project create shop

@@ -3,6 +3,7 @@ import type { ArgumentsCamelCase, Argv, CommandModule, InferredOptionTypes, Opti
 import { askUser, errorMessage } from '../../utils';
 import { getAwsClientConfig, type AwsClientConfig } from '../../provider/aws';
 import { PROJECT_TAG, resolveProject } from '../../projects';
+import { listProjectResources, taggingClient } from '../../provider/aws-services/tagging';
 
 /**
  * Helpers shared by the per-service commands (clover aws ec2|rds|dynamodb|s3|lambda ...).
@@ -108,6 +109,15 @@ export function parseKeyValues(list: readonly (string | number)[] | undefined, l
 export function createTags(argv: { tags?: readonly (string | number)[]; project?: string }): Record<string, string> {
     const project = resolveProject(argv.project);
     return { ...parseKeyValues(argv.tags), ...(project ? { [PROJECT_TAG]: project } : {}) };
+}
+
+/** Keeps the items that belong to the active project; all of them when no project is active. */
+export async function inProject<T>(argv: { project?: string; region?: string }, items: T[], idOf: (item: T) => string): Promise<T[]> {
+    const project = resolveProject(argv.project);
+    if (!project) return items;
+    info(`Project ${project} (--project to pick another, \`clover project use --none\` for everything).`);
+    const ids = new Set((await listProjectResources(taggingClient(clientConfig(argv)), project)).map((r) => r.id));
+    return items.filter((item) => ids.has(idOf(item)));
 }
 
 /** A value given inline, or read from a file with the @path prefix (e.g. --user-data @setup.sh). */

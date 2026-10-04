@@ -14,7 +14,7 @@ import {
     waitForTable,
     type Item,
 } from '../../provider/aws-services/dynamodb';
-import { action, createTags, clientConfig, confirm, info, parseJson, parseKeyValues, print, serviceBuilder, tagsOption, waitOption, yesOption } from './shared';
+import { action, createTags, inProject, clientConfig, confirm, info, parseJson, parseKeyValues, print, serviceBuilder, tagsOption, waitOption, yesOption } from './shared';
 
 const tablePositional = { table: { type: 'string', describe: 'Table name' } } as const;
 
@@ -66,7 +66,7 @@ const list = action({
     command: 'list',
     describe: 'List DynamoDB tables',
     handler: async (argv) => {
-        const names = await listTables(dynamoDbClient(clientConfig(argv)));
+        const names = await inProject(argv, await listTables(dynamoDbClient(clientConfig(argv))), (name) => name);
         print(argv, argv.output === 'json' ? names : names.map((name) => ({ name })), 'No tables found.');
     },
 });

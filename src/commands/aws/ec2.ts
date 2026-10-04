@@ -14,7 +14,7 @@ import {
     type Ec2Summary,
 } from '../../provider/aws-services/ec2';
 import {
-    action, createTags, clientConfig, confirm, info, parseKeyValues, print, readText, serviceBuilder, tagsOption, waitOption, yesOption,
+    action, createTags, inProject, clientConfig, confirm, info, parseKeyValues, print, readText, serviceBuilder, tagsOption, waitOption, yesOption,
 } from './shared';
 
 const idsPositional = { ids: { type: 'string', array: true, describe: 'Instance ID(s)' } } as const;
@@ -85,10 +85,10 @@ const list = action({
         tag: { type: 'string', array: true, describe: 'Only instances with this tag (Key=Value, repeatable)' },
     },
     handler: async (argv) => {
-        const instances = await listInstances(ec2Client(clientConfig(argv)), {
+        const instances = await inProject(argv, await listInstances(ec2Client(clientConfig(argv)), {
             states: argv.state?.map(String),
             tags: parseKeyValues(argv.tag),
-        });
+        }), (i) => i.id);
         print(argv, argv.output === 'json' ? instances : instances.map(row), 'No instances found.');
     },
 });
