@@ -98,3 +98,21 @@ eval "$(clover gcp login --project my-project --key-file ~/key.json)"
 clover gcp whoami
 eval "$(clover gcp logout)"
 ```
+
+## Projects
+
+Projects group the resources of one app, like Supabase projects. They're saved in
+`~/.config/clover/projects.json` (or `$XDG_CONFIG_HOME/clover/projects.json`).
+
+| Command | What it does |
+| --- | --- |
+| `clover project create <name>` | Create a project (lowercase letters, digits and dashes) |
+| `clover project list` | List projects; `current` marks the one in use |
+| `clover project get <name>` | Show one project |
+| `clover project use <name>` | Make it the current project (`--none` to clear) |
+| `clover project delete <name>` | Delete the project. Its resources are kept |
+
+```sh
+clover project create shop
+clover project use shop
+```
