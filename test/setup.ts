@@ -11,9 +11,12 @@ vi.mock('../src/provider/aws', () => ({
     listAwsResources: vi.fn(),
 }));
 
-vi.mock('../src/provider/gcp', () => ({
+// Request helpers stay real; command tests return a fakeGcpClient() from gcpClient.
+vi.mock('../src/provider/gcp', async (importOriginal) => ({
+    ...await importOriginal<typeof import('../src/provider/gcp')>(),
     verifyGcpCredentials: vi.fn(),
     getGcpConfig: vi.fn(),
+    gcpClient: vi.fn(),
 }));
 
 vi.mock('../src/utils', async (importOriginal) => ({

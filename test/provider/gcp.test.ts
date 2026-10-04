@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GoogleAuth } from 'google-auth-library';
-import { getGcpConfig, verifyGcpCredentials } from '../../src/provider/gcp';
+import { gcpList, gcpRequest, getGcpConfig, verifyGcpCredentials } from '../../src/provider/gcp';
+import { fakeGcpClient } from '../helpers';
 
 // test/setup.ts mocks this module for the command tests; here the real one is under test.
 vi.unmock('../../src/provider/gcp');
@@ -46,5 +47,21 @@ describe('getGcpConfig', () => {
 
     it('explains how to log in when no project is set', () => {
         expect(() => getGcpConfig({})).toThrow('No GCP project found');
+    });
+});
+
+describe('gcpRequest and gcpList', () => {
+    it('returns the response body', async () => {
+        const { client, sent } = fakeGcpClient({ 'POST /things': { name: 'op-1' } });
+
+        await expect(gcpRequest(client, 'https://x/things', { method: 'POST', data: { a: 1 } })).resolves.toEqual({ name: 'op-1' });
+        expect(sent()[0]).toMatchObject({ method: 'POST', url: 'https://x/things', data: { a: 1 } });
+    });
+
+    it('follows nextPageToken', async () => {
+        const { client, sent } = fakeGcpClient({ 'GET /things': [{ items: [1, 2], nextPageToken: 't' }, { items: [3] }] });
+
+        await expect(gcpList(client, 'https://x/things', 'items', { filter: 'f' })).resolves.toEqual([1, 2, 3]);
+        expect(sent()[1].params).toEqual({ filter: 'f', pageToken: 't' });
     });
 });

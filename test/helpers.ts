@@ -1,6 +1,7 @@
 import { vi, type Mock } from 'vitest';
 import yargs from 'yargs';
 import awsCommand from '../src/commands/aws/aws';
+import type { GcpClient } from '../src/provider/gcp';
 import gcpCommand from '../src/commands/gcp/gcp';
 
 /**
@@ -65,3 +66,39 @@ export function fakeClient<T>(responses: Record<string, unknown> = {}): { client
 
 /** Sets the credentials that getAwsClientConfig returns. */
 export const testConfig = { region: 'us-east-1', credentials: { accessKeyId: 'AKIA', secretAccessKey: 'SECRET' } };
+
+/** A request sent to a fake GCP client. */
+export interface SentRequest {
+    method: string;
+    url: string;
+    params?: Record<string, unknown>;
+    data?: unknown;
+}
+
+/**
+ * A stand-in for the GCP client (see GcpClient in src/provider/gcp.ts). `responses` maps
+ * "METHOD url-substring" (e.g. 'POST /instances') to the response body; the first key that matches
+ * wins. A function is called with the request, an array is used one entry per call (the last repeats),
+ * and an Error is thrown.
+ */
+export function fakeGcpClient(responses: Record<string, unknown> = {}) {
+    const counts = new Map<string, number>();
+    const request = vi.fn(async (opts: SentRequest) => {
+        const key = Object.keys(responses).find((k) => {
+            const [method, part] = k.split(' ');
+            return method === (opts.method ?? 'GET') && opts.url.includes(part);
+        });
+        let response = key === undefined ? undefined : responses[key];
+        if (key !== undefined && Array.isArray(response)) {
+            const n = counts.get(key) ?? 0;
+            counts.set(key, n + 1);
+            response = response[Math.min(n, response.length - 1)];
+        }
+        if (typeof response === 'function') response = await response(opts);
+        if (response instanceof Error) throw response;
+        return { data: response ?? {} };
+    });
+    const sent = (): SentRequest[] => request.mock.calls.map(([opts]) => opts);
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- a fake with only `request` stands in for GoogleAuth
+    return { client: { request } as unknown as GcpClient, request, sent };
+}
