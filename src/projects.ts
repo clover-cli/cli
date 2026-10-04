@@ -12,6 +12,8 @@ export interface ProjectStore {
     projects: Project[];
 }
 
+export const PROJECT_TAG = 'clover:project';
+
 const NAME_PATTERN = /^[a-z0-9][a-z0-9-]{0,62}$/;
 
 export function projectsFile(env: NodeJS.ProcessEnv = process.env): string {
@@ -65,4 +67,10 @@ export function useProject(name: string | undefined, file = projectsFile()): voi
     const store = loadProjects(file);
     if (name !== undefined) findProject(store, name);
     saveProjects({ ...store, current: name }, file);
+}
+
+/** The project a command acts on: --project if given (it must exist), else the current one. */
+export function resolveProject(name?: string, file = projectsFile()): string | undefined {
+    if (name) return findProject(loadProjects(file), name).name;
+    return loadProjects(file).current;
 }

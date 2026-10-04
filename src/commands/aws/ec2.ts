@@ -14,7 +14,7 @@ import {
     type Ec2Summary,
 } from '../../provider/aws-services/ec2';
 import {
-    action, clientConfig, confirm, info, parseKeyValues, print, readText, serviceBuilder, tagsOption, waitOption, yesOption,
+    action, createTags, clientConfig, confirm, info, parseKeyValues, print, readText, serviceBuilder, tagsOption, waitOption, yesOption,
 } from './shared';
 
 const idsPositional = { ids: { type: 'string', array: true, describe: 'Instance ID(s)' } } as const;
@@ -56,7 +56,7 @@ const create = action({
             volumeSize: argv.volumeSize,
             publicIp: argv.publicIp,
             iamInstanceProfile: argv.iamProfile,
-            tags: parseKeyValues(argv.tags),
+            tags: createTags(argv),
         });
         const ids = instances.map((i) => i.id);
         info(`Launched ${ids.join(', ')}.`);

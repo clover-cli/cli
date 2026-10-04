@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import type { ArgumentsCamelCase, Argv, CommandModule, InferredOptionTypes, Options, PositionalOptions } from 'yargs';
 import { askUser, errorMessage } from '../../utils';
 import { getAwsClientConfig, type AwsClientConfig } from '../../provider/aws';
+import { PROJECT_TAG, resolveProject } from '../../projects';
 
 /**
  * Helpers shared by the per-service commands (clover aws ec2|rds|dynamodb|s3|lambda ...).
@@ -11,6 +12,7 @@ import { getAwsClientConfig, type AwsClientConfig } from '../../provider/aws';
 export const commonOptions = {
     region: { type: 'string', describe: 'Region for this command (overrides AWS_REGION)' },
     output: { choices: ['table', 'json'] as const, default: 'table' as const, describe: 'Output format' },
+    project: { type: 'string', describe: 'Clover project for this command (default: the current one, see clover project use)' },
 } as const satisfies Record<string, Options>;
 
 export const yesOption = {
@@ -100,6 +102,12 @@ export function parseKeyValues(list: readonly (string | number)[] | undefined, l
         result[text.slice(0, eq)] = text.slice(eq + 1);
     }
     return result;
+}
+
+/** --tags plus the project tag, for resources created while a project is active. */
+export function createTags(argv: { tags?: readonly (string | number)[]; project?: string }): Record<string, string> {
+    const project = resolveProject(argv.project);
+    return { ...parseKeyValues(argv.tags), ...(project ? { [PROJECT_TAG]: project } : {}) };
 }
 
 /** A value given inline, or read from a file with the @path prefix (e.g. --user-data @setup.sh). */

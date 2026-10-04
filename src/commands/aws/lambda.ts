@@ -9,7 +9,7 @@ import {
     updateFunction,
     waitForFunction,
 } from '../../provider/aws-services/lambda';
-import { action, clientConfig, confirm, info, parseJson, parseKeyValues, print, serviceBuilder, tagsOption, waitOption, yesOption } from './shared';
+import { action, createTags, clientConfig, confirm, info, parseJson, parseKeyValues, print, serviceBuilder, tagsOption, waitOption, yesOption } from './shared';
 
 const namePositional = { name: { type: 'string', describe: 'Function name' } } as const;
 
@@ -47,7 +47,7 @@ const create = action({
             architecture: argv.architecture,
             description: argv.description,
             environment: Object.keys(env).length > 0 ? env : undefined,
-            tags: parseKeyValues(argv.tags),
+            tags: createTags(argv),
         });
         if (argv.wait) {
             info('Waiting for the function to become active...');

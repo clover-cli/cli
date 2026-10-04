@@ -1,13 +1,6 @@
-import { mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createProject, loadProjects, useProject } from '../../src/projects';
 import { errored, logged, runCli } from '../helpers';
-
-beforeEach(() => {
-    vi.stubEnv('XDG_CONFIG_HOME', mkdtempSync(path.join(tmpdir(), 'clover-')));
-});
 
 describe('clover project', () => {
     it('creates a project', async () => {
