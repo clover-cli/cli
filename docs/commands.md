@@ -70,3 +70,24 @@ clover aws whoami
 
 The `eval` form works in bash and zsh. In other shells, run `clover aws login` and set the printed
 variables yourself.
+
+## GCP
+
+Clover reads GCP credentials from the standard environment variables. Nothing is written to disk.
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `GOOGLE_CLOUD_PROJECT` | yes | Project ID |
+| `GOOGLE_APPLICATION_CREDENTIALS` | no | Service account key file. Without it, the credentials from `gcloud auth application-default login` are used |
+
+| Command | What it does |
+| --- | --- |
+| `clover gcp login` | Verify GCP credentials and print the `export` commands that set them (`--project`, `--key-file`) |
+| `clover gcp whoami` | Check that the credentials in the environment work |
+| `clover gcp logout` | Print the `unset` command that removes the credentials |
+
+```sh
+eval "$(clover gcp login --project my-project --key-file ~/key.json)"
+clover gcp whoami
+eval "$(clover gcp logout)"
+```

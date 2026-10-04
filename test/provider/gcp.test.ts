@@ -2,6 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { GoogleAuth } from 'google-auth-library';
 import { getGcpConfig, verifyGcpCredentials } from '../../src/provider/gcp';
 
+// test/setup.ts mocks this module for the command tests; here the real one is under test.
+vi.unmock('../../src/provider/gcp');
+
 const { auth } = vi.hoisted(() => ({
     auth: { getAccessToken: vi.fn(), getCredentials: vi.fn() },
 }));

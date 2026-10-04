@@ -1,6 +1,7 @@
 import { vi, type Mock } from 'vitest';
 import yargs from 'yargs';
 import awsCommand from '../src/commands/aws/aws';
+import gcpCommand from '../src/commands/gcp/gcp';
 
 /**
  * Runs the CLI with the given arguments, e.g. runCli('aws logout --all').
@@ -11,6 +12,7 @@ export async function runCli(args: string | string[]): Promise<void> {
     await yargs(typeof args === 'string' ? args.split(' ') : args)
         .scriptName('clover')
         .command(awsCommand)
+        .command(gcpCommand)
         .strict()
         .exitProcess(false)
         .fail((msg, err) => {
