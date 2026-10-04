@@ -3,6 +3,11 @@ import { getGcpConfig, verifyGcpCredentials } from '../../provider/gcp';
 import { gcpExportCommands, gcpUnsetCommand } from '../../credentials';
 import { askUser, errorMessage } from '../../utils';
 import computeCommand from './compute';
+import sqlCommand from './sql';
+import firestoreCommand from './firestore';
+import storageCommand from './storage';
+import functionsCommand from './functions';
+import iamCommand from './iam';
 
 const loginOptions = {
     project: { type: 'string', describe: 'GCP project ID' },
@@ -62,7 +67,7 @@ function logout(): void {
 }
 
 /**
- * clover gcp <login|whoami|logout|compute>
+ * clover gcp <login|whoami|logout|compute|sql|firestore|storage|functions|iam>
  */
 const gcpCommand: CommandModule = {
     command: 'gcp',
@@ -77,7 +82,12 @@ const gcpCommand: CommandModule = {
         .command({ command: 'whoami', describe: 'Check that the credentials in the environment work', handler: whoami })
         .command({ command: 'logout', describe: 'Print the command to remove GCP credentials from the environment', handler: logout })
         .command(computeCommand)
-        .demandCommand(1, 'Choose an action: login, whoami, logout, compute'),
+        .command(sqlCommand)
+        .command(firestoreCommand)
+        .command(storageCommand)
+        .command(functionsCommand)
+        .command(iamCommand)
+        .demandCommand(1, 'Choose an action: login, whoami, logout, compute, sql, firestore, storage, functions, iam'),
     handler: () => {},
 };
 
