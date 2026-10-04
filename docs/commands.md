@@ -3,6 +3,14 @@
 Run with `npm run dev:run -- <command>` (builds first) or `node dist/index.js <command>`.
 Add `--help` to any command to see its options.
 
+## Shell completion
+
+`clover completion` prints a bash/zsh completion script. Add it to your shell config:
+
+```sh
+clover completion >> ~/.bashrc   # or ~/.zshrc
+```
+
 ## AWS
 
 Clover reads AWS credentials from the standard environment variables, the same ones the AWS CLI
