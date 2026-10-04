@@ -5,7 +5,7 @@ import { listInstances } from '../../../src/provider/aws-services/ec2';
 import { listFunctions } from '../../../src/provider/aws-services/lambda';
 import { listDatabases } from '../../../src/provider/aws-services/rds';
 import { listBuckets } from '../../../src/provider/aws-services/s3';
-import { addToProject, listProjectResources } from '../../../src/provider/aws-services/tagging';
+import { addToProject, listProjectResources, taggingClient } from '../../../src/provider/aws-services/tagging';
 import { createProject, useProject } from '../../../src/projects';
 import { errored, logged, runCli, testConfig } from '../../helpers';
 
@@ -117,6 +117,7 @@ describe('clover project overview', () => {
         await runCli('project overview --output json');
 
         expect(listProjectResources).toHaveBeenCalledWith(undefined);
+        expect(listAwsResources).toHaveBeenCalledWith(undefined);
         expect(JSON.parse(logged())).toEqual({
             region: 'us-east-1',
             total: 3,
@@ -127,5 +128,16 @@ describe('clover project overview', () => {
                 { project: 'old', total: 1, s3: 1 },
             ],
         });
+    });
+
+    it('uses --region for the totals and the projects alike', async () => {
+        vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
+        vi.mocked(listAwsResources).mockResolvedValue({ region: 'eu-west-1', total: 0, services: [] });
+        vi.mocked(listProjectResources).mockResolvedValue([]);
+
+        await runCli('project overview --region eu-west-1 --output json');
+
+        expect(listAwsResources).toHaveBeenCalledWith('eu-west-1');
+        expect(taggingClient).toHaveBeenCalledWith({ ...testConfig, region: 'eu-west-1' });
     });
 });
