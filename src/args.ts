@@ -8,6 +8,7 @@ import awsCommand from './commands/aws/aws';
 const argv = yargs(process.argv.slice(2))
     .scriptName('clover')
     .command(awsCommand)
+    .completion()
     .strict()
     .help()
     .parse();
