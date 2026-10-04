@@ -1,5 +1,6 @@
 import type { Argv, CommandModule } from 'yargs';
 import { createProject, deleteProject, getProject, loadProjects, resolveProject, useProject } from '../projects';
+import { listAwsResources } from '../provider/aws';
 import { addToProject, listProjectResources, taggingClient } from '../provider/aws-services/tagging';
 import { errorMessage } from '../utils';
 import { action, clientConfig, commonOptions, confirm, info, print, yesOption } from './aws/shared';
@@ -90,8 +91,34 @@ const add = action({
     },
 });
 
+const overview = action({
+    command: 'overview',
+    describe: 'Totals per service across the account, and per project',
+    handler: async (argv) => {
+        const [inventory, tagged] = await Promise.all([
+            listAwsResources(),
+            listProjectResources(taggingClient(clientConfig(argv))),
+        ]);
+        const names = [...new Set([...loadProjects().projects.map((p) => p.name), ...tagged.map((r) => r.project)])];
+        const projects = names.map((project) => {
+            const mine = tagged.filter((r) => r.project === project);
+            const services: Record<string, number> = {};
+            for (const r of mine) services[r.service] = (services[r.service] ?? 0) + 1;
+            return { project, total: mine.length, ...services };
+        });
+        const services = inventory.services.map(({ service, count, error }) => ({ service, count, ...(error ? { error } : {}) }));
+        if (argv.output === 'json') {
+            print(argv, { region: inventory.region, total: inventory.total, services, projects });
+            return;
+        }
+        console.log(`Account overview, region ${inventory.region}: ${inventory.total} resource(s).`);
+        print(argv, services);
+        print(argv, projects, 'No projects.');
+    },
+});
+
 /**
- * clover project <create|list|get|delete|use|add>
+ * clover project <create|list|get|delete|use|add|overview>
  */
 const projectCommand: CommandModule = {
     command: 'project',
@@ -104,7 +131,8 @@ const projectCommand: CommandModule = {
         .command(remove)
         .command(use)
         .command(add)
-        .demandCommand(1, 'Choose an action: create, list, get, delete, use, add'),
+        .command(overview)
+        .demandCommand(1, 'Choose an action: create, list, get, delete, use, add, overview'),
     handler: () => {},
 };
 
