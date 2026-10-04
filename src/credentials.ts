@@ -52,3 +52,39 @@ export function exportCommands(login: AwsLogin): string[] {
 export function unsetCommand(): string {
     return `unset ${AWS_ENV_VARS.join(' ')}`;
 }
+
+/**
+ * GCP credentials: GOOGLE_CLOUD_PROJECT names the project, and GOOGLE_APPLICATION_CREDENTIALS
+ * optionally points at a service account key file. Without a key file, the Application Default
+ * Credentials from `gcloud auth application-default login` are used.
+ */
+export const GCP_ENV_VARS = ['GOOGLE_CLOUD_PROJECT', 'GOOGLE_APPLICATION_CREDENTIALS'] as const;
+
+export interface GcpLogin {
+    project: string;
+    keyFile?: string;
+}
+
+/** Reads the GCP project and key file from the environment. Returns undefined without a project. */
+export function readGcpEnv(env: NodeJS.ProcessEnv = process.env): GcpLogin | undefined {
+    const project = env.GOOGLE_CLOUD_PROJECT;
+    if (!project) {
+        return undefined;
+    }
+    return { project, keyFile: env.GOOGLE_APPLICATION_CREDENTIALS || undefined };
+}
+
+/** Shell commands for: eval "$(clover gcp login)". Without a key file, any old one is unset. */
+export function gcpExportCommands(login: GcpLogin): string[] {
+    return [
+        `export GOOGLE_CLOUD_PROJECT=${shellQuote(login.project)}`,
+        login.keyFile
+            ? `export GOOGLE_APPLICATION_CREDENTIALS=${shellQuote(login.keyFile)}`
+            : 'unset GOOGLE_APPLICATION_CREDENTIALS',
+    ];
+}
+
+/** Shell command that removes the GCP variables: eval "$(clover gcp logout)" */
+export function gcpUnsetCommand(): string {
+    return `unset ${GCP_ENV_VARS.join(' ')}`;
+}
