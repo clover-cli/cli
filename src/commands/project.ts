@@ -1,6 +1,6 @@
 import type { Argv, CommandModule } from 'yargs';
-import { createProject, deleteProject, getProject, loadProjects, useProject } from '../projects';
-import { listProjectResources, taggingClient } from '../provider/aws-services/tagging';
+import { createProject, deleteProject, getProject, loadProjects, resolveProject, useProject } from '../projects';
+import { addToProject, listProjectResources, taggingClient } from '../provider/aws-services/tagging';
 import { errorMessage } from '../utils';
 import { action, clientConfig, commonOptions, confirm, info, print, yesOption } from './aws/shared';
 
@@ -76,8 +76,22 @@ const use = action({
     },
 });
 
+const add = action({
+    command: 'add <arns..>',
+    describe: 'Bring existing resources into the current project (or --project), by ARN',
+    positionals: { arns: { type: 'string', array: true, describe: 'Resource ARN(s)' } },
+    options: { project: commonOptions.project },
+    examples: [['$0 project add arn:aws:s3:::my-bucket arn:aws:lambda:us-east-1:123456789012:function:api', 'Add a bucket and a function']],
+    handler: async (argv) => {
+        const project = resolveProject(argv.project);
+        if (!project) throw new Error('No current project. Pass --project <name>, or run: clover project use <name>');
+        await addToProject(taggingClient(clientConfig(argv)), argv.arns, project);
+        info(`Added ${argv.arns.length} resource(s) to project ${project}.`);
+    },
+});
+
 /**
- * clover project <create|list|get|delete|use>
+ * clover project <create|list|get|delete|use|add>
  */
 const projectCommand: CommandModule = {
     command: 'project',
@@ -89,7 +103,8 @@ const projectCommand: CommandModule = {
         .command(get)
         .command(remove)
         .command(use)
-        .demandCommand(1, 'Choose an action: create, list, get, delete, use'),
+        .command(add)
+        .demandCommand(1, 'Choose an action: create, list, get, delete, use, add'),
     handler: () => {},
 };
 

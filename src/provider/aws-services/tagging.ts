@@ -1,4 +1,4 @@
-import { GetResourcesCommand, ResourceGroupsTaggingAPIClient } from '@aws-sdk/client-resource-groups-tagging-api';
+import { GetResourcesCommand, ResourceGroupsTaggingAPIClient, TagResourcesCommand } from '@aws-sdk/client-resource-groups-tagging-api';
 import { PROJECT_TAG } from '../../projects';
 import type { AwsClientConfig } from '../aws';
 
@@ -44,4 +44,16 @@ export async function listProjectResources(client: ResourceGroupsTaggingAPIClien
         token = page.PaginationToken;
     } while (token);
     return resources;
+}
+
+/**
+ * Adds the project tag to existing resources (other tags are kept). The caller also needs each
+ * service's own tagging permission, e.g. ec2:CreateTags. Throws listing the ARNs AWS refused.
+ */
+export async function addToProject(client: ResourceGroupsTaggingAPIClient, arns: string[], project: string): Promise<void> {
+    const result = await client.send(new TagResourcesCommand({ ResourceARNList: arns, Tags: { [PROJECT_TAG]: project } }));
+    const failed = Object.entries(result.FailedResourcesMap ?? {});
+    if (failed.length > 0) {
+        throw new Error(failed.map(([arn, f]) => `${arn}: ${f.ErrorMessage ?? f.ErrorCode ?? 'failed'}`).join('\n'));
+    }
 }

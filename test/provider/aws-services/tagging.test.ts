@@ -1,6 +1,6 @@
 import type { ResourceGroupsTaggingAPIClient } from '@aws-sdk/client-resource-groups-tagging-api';
 import { describe, expect, it } from 'vitest';
-import { listProjectResources } from '../../../src/provider/aws-services/tagging';
+import { addToProject, listProjectResources } from '../../../src/provider/aws-services/tagging';
 import { fakeClient } from '../../helpers';
 
 const tagged = (arn: string, project = 'shop') => ({ ResourceARN: arn, Tags: [{ Key: 'clover:project', Value: project }] });
@@ -36,5 +36,23 @@ describe('listProjectResources', () => {
             { arn: 'arn:aws:s3:::b', id: 'b', service: 's3', project: 'blog' },
         ]);
         expect(sent()[0].input.TagFilters).toEqual([{ Key: 'clover:project', Values: undefined }]);
+    });
+});
+
+describe('addToProject', () => {
+    it('tags every ARN with the project', async () => {
+        const { client, sent } = fakeClient<ResourceGroupsTaggingAPIClient>();
+
+        await addToProject(client, ['arn:aws:s3:::b'], 'shop');
+
+        expect(sent()[0]).toEqual({ name: 'TagResourcesCommand', input: { ResourceARNList: ['arn:aws:s3:::b'], Tags: { 'clover:project': 'shop' } } });
+    });
+
+    it('throws with the resources AWS refused', async () => {
+        const { client } = fakeClient<ResourceGroupsTaggingAPIClient>({
+            TagResourcesCommand: { FailedResourcesMap: { 'arn:aws:s3:::b': { ErrorCode: 'InvalidParameterException', ErrorMessage: 'Access denied' } } },
+        });
+
+        await expect(addToProject(client, ['arn:aws:s3:::b'], 'shop')).rejects.toThrow('arn:aws:s3:::b: Access denied');
     });
 });
