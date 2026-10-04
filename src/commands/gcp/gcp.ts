@@ -7,6 +7,7 @@ import sqlCommand from './sql';
 import firestoreCommand from './firestore';
 import storageCommand from './storage';
 import functionsCommand from './functions';
+import iamCommand from './iam';
 
 const loginOptions = {
     project: { type: 'string', describe: 'GCP project ID' },
@@ -66,7 +67,7 @@ function logout(): void {
 }
 
 /**
- * clover gcp <login|whoami|logout|compute|sql|firestore|storage|functions>
+ * clover gcp <login|whoami|logout|compute|sql|firestore|storage|functions|iam>
  */
 const gcpCommand: CommandModule = {
     command: 'gcp',
@@ -85,7 +86,8 @@ const gcpCommand: CommandModule = {
         .command(firestoreCommand)
         .command(storageCommand)
         .command(functionsCommand)
-        .demandCommand(1, 'Choose an action: login, whoami, logout, compute, sql, firestore, storage, functions'),
+        .command(iamCommand)
+        .demandCommand(1, 'Choose an action: login, whoami, logout, compute, sql, firestore, storage, functions, iam'),
     handler: () => {},
 };
 

@@ -297,3 +297,24 @@ clover gcp functions update api --source ./build --memory 512 --env LOG_LEVEL=de
 Sends a `POST` to the function's URL with your credentials' access token. Functions that allow
 unauthenticated calls always work; a private function may answer 401, since Cloud Run expects an ID
 token: call it with `curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" <uri>`.
+
+## IAM
+
+```sh
+clover gcp iam <policies|check>
+```
+
+Read-only: these show what the current credentials may do on the project.
+
+| Action | What it does |
+| --- | --- |
+| `policies` | List the project roles granted to you directly (needs a service account key file; roles from groups aren't shown) |
+| `check` | Check which Clover commands you're allowed to run (`--service storage functions` to check only some) |
+
+```sh
+clover gcp iam check --output json | jq -r '.[] | select(.allowed | not) | .missing[]' | sort -u   # everything you're missing
+```
+
+`check` uses [testIamPermissions](https://cloud.google.com/resource-manager/reference/rest/v3/projects/testIamPermissions)
+at the project level, so a grant on a single bucket or instance shows that command as not allowed.
+`policies` needs `resourcemanager.projects.getIamPolicy`; `check` needs no extra permission.

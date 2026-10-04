@@ -90,6 +90,7 @@ Clover reads GCP credentials from the standard environment variables. Nothing is
 | `clover gcp firestore <action>` | Create, list, update and delete Firestore databases and documents |
 | `clover gcp storage <action>` | Create, list, update and delete Cloud Storage buckets and objects |
 | `clover gcp functions <action>` | Create, list, update, delete and invoke Cloud Functions |
+| `clover gcp iam <policies\|check>` | Show your project roles, and which Clover commands they allow |
 
 ```sh
 eval "$(clover gcp login --project my-project --key-file ~/key.json)"
