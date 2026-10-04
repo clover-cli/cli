@@ -96,7 +96,7 @@ const overview = action({
     describe: 'Totals per service across the account, and per project',
     handler: async (argv) => {
         const [inventory, tagged] = await Promise.all([
-            listAwsResources(),
+            listAwsResources(argv.region),
             listProjectResources(taggingClient(clientConfig(argv))),
         ]);
         const names = [...new Set([...loadProjects().projects.map((p) => p.name), ...tagged.map((r) => r.project)])];
