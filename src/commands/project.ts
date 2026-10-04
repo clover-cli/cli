@@ -111,7 +111,7 @@ const overview = action({
             print(argv, { region: inventory.region, total: inventory.total, services, projects });
             return;
         }
-        console.log(`Account overview, region ${inventory.region}: ${inventory.total} resource(s).`);
+        info(`Account overview, region ${inventory.region}: ${inventory.total} resource(s).`);
         print(argv, services);
         print(argv, projects, 'No projects.');
     },
