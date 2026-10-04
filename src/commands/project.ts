@@ -76,9 +76,6 @@ const use = action({
     },
 });
 
-/**
- * clover project <create|list|get|delete|use>
- */
 const projectCommand: CommandModule = {
     command: 'project',
     describe: 'Group resources into projects',

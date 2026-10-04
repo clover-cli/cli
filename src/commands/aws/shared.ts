@@ -105,7 +105,6 @@ export function parseKeyValues(list: readonly (string | number)[] | undefined, l
     return result;
 }
 
-/** --tags plus the project tag, for resources created while a project is active. */
 export function createTags(argv: { tags?: readonly (string | number)[]; project?: string }): Record<string, string> {
     const project = resolveProject(argv.project);
     return { ...parseKeyValues(argv.tags), ...(project ? { [PROJECT_TAG]: project } : {}) };
