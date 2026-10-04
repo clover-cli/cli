@@ -69,7 +69,6 @@ export function useProject(name: string | undefined, file = projectsFile()): voi
     saveProjects({ ...store, current: name }, file);
 }
 
-/** The project a command acts on: --project if given (it must exist), else the current one. */
 export function resolveProject(name?: string, file = projectsFile()): string | undefined {
     if (name) return findProject(loadProjects(file), name).name;
     return loadProjects(file).current;
