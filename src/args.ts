@@ -1,5 +1,6 @@
 import yargs from 'yargs';
 import awsCommand from './commands/aws/aws';
+import gcpCommand from './commands/gcp/gcp';
 
 /**
  * Argument and command definitions.
@@ -8,6 +9,7 @@ import awsCommand from './commands/aws/aws';
 const argv = yargs(process.argv.slice(2))
     .scriptName('clover')
     .command(awsCommand)
+    .command(gcpCommand)
     .completion()
     .strict()
     .help()

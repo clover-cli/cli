@@ -34,3 +34,52 @@ export function getGcpConfig(env: NodeJS.ProcessEnv = process.env): GcpLogin {
     }
     return login;
 }
+
+/** What the GCP service modules need from GoogleAuth; tests pass a fake (see fakeGcpClient). */
+export type GcpClient = Pick<GoogleAuth, 'request'>;
+
+export function gcpClient(login: GcpLogin): GcpClient {
+    return gcpAuth(login);
+}
+
+export interface GcpRequestOptions {
+    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+    params?: Record<string, string | number | boolean | undefined>;
+    data?: unknown;
+}
+
+/** Calls a GCP REST API and returns the response body. GCP's error message is thrown as is. */
+export async function gcpRequest<T>(client: GcpClient, url: string, opts: GcpRequestOptions = {}): Promise<T> {
+    // gaxios types `data` as a union of body types; any JSON-serializable value works.
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    const res = await client.request<T>({ url, method: opts.method ?? 'GET', params: opts.params, data: opts.data as object });
+    return res.data;
+}
+
+/** Follows nextPageToken and returns every item under `key` (e.g. 'items', 'instances'). */
+export async function gcpList<T>(client: GcpClient, url: string, key: string, params: GcpRequestOptions['params'] = {}): Promise<T[]> {
+    const items: T[] = [];
+    let pageToken: string | undefined;
+    do {
+        const page = await gcpRequest<Record<string, unknown>>(client, url, { params: { ...params, pageToken } });
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        items.push(...((page[key] ?? []) as T[]));
+        pageToken = typeof page.nextPageToken === 'string' ? page.nextPageToken : undefined;
+    } while (pageToken);
+    return items;
+}
+
+/** How long --wait waits before giving up. */
+export const GCP_MAX_WAIT_MS = 30 * 60 * 1000;
+
+/**
+ * Calls `check` every `intervalMs` until it returns true; throws after GCP_MAX_WAIT_MS.
+ * Used for --wait on long-running operations.
+ */
+export async function pollUntil(check: () => Promise<boolean>, what: string, intervalMs = 5000): Promise<void> {
+    const deadline = Date.now() + GCP_MAX_WAIT_MS;
+    while (!await check()) {
+        if (Date.now() > deadline) throw new Error(`Timed out waiting for ${what}.`);
+        await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+}
