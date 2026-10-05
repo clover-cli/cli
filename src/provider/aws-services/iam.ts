@@ -186,6 +186,7 @@ export const COMMAND_ACTIONS: Record<string, Record<string, string[]>> = {
     },
     project: {
         get: ['tag:GetResources'],
+        overview: ['tag:GetResources', 'ec2:DescribeInstances', 'rds:DescribeDBInstances', 'dynamodb:ListTables', 's3:ListAllMyBuckets', 'lambda:ListFunctions'],
         // Plus the tagging permission of each resource's service, e.g. ec2:CreateTags.
         add: ['tag:TagResources'],
     },
