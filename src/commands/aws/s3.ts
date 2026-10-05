@@ -12,7 +12,7 @@ import {
     updateBucket,
     uploadObject,
 } from '../../provider/aws-services/s3';
-import { action, clientConfig, confirm, info, parseKeyValues, print, serviceBuilder, tagsOption, yesOption } from './shared';
+import { action, clientConfig, createTags, inProject, confirm, info, parseKeyValues, print, serviceBuilder, tagsOption, yesOption } from './shared';
 
 const bucketPositional = { bucket: { type: 'string', describe: 'Bucket name' } } as const;
 
@@ -27,7 +27,7 @@ const create = action({
     examples: [['$0 aws s3 create my-app-assets --region eu-west-1 --versioning --tags env=prod', 'A versioned, tagged bucket in Ireland']],
     handler: async (argv) => {
         const config = clientConfig(argv);
-        const tags = parseKeyValues(argv.tags);
+        const tags = createTags(argv);
         const bucket = await createBucket(s3Client(config), argv.bucket, {
             region: config.region,
             versioning: argv.versioning,
@@ -42,7 +42,7 @@ const list = action({
     command: 'list',
     describe: 'List S3 buckets (all regions)',
     handler: async (argv) => {
-        print(argv, await listBuckets(s3Client(clientConfig(argv))), 'No buckets found.');
+        print(argv, await inProject(argv, await listBuckets(s3Client(clientConfig(argv))), (b) => b.name), 'No buckets found.');
     },
 });
 

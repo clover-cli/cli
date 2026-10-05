@@ -3,6 +3,7 @@ import yargs from 'yargs';
 import awsCommand from '../src/commands/aws/aws';
 import type { GcpClient } from '../src/provider/gcp';
 import gcpCommand from '../src/commands/gcp/gcp';
+import projectCommand from '../src/commands/project';
 
 /**
  * Runs the CLI with the given arguments, e.g. runCli('aws logout --all').
@@ -14,6 +15,7 @@ export async function runCli(args: string | string[]): Promise<void> {
         .scriptName('clover')
         .command(awsCommand)
         .command(gcpCommand)
+        .command(projectCommand)
         .strict()
         .exitProcess(false)
         .fail((msg, err) => {

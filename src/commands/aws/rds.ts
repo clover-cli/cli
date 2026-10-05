@@ -14,7 +14,7 @@ import {
 } from '../../provider/aws-services/rds';
 import { ec2Client } from '../../provider/aws-services/ec2';
 import { isMissingDefaultNetwork, restoreDefaultNetwork } from '../../provider/aws-services/network';
-import { action, clientConfig, confirm, info, parseKeyValues, print, serviceBuilder, tagsOption, waitOption, yesOption } from './shared';
+import { action, createTags, inProject, clientConfig, confirm, info, parseKeyValues, print, serviceBuilder, tagsOption, waitOption, yesOption } from './shared';
 
 const idPositional = { id: { type: 'string', describe: 'Database instance identifier' } } as const;
 
@@ -64,7 +64,7 @@ const create = action({
             subnetGroup: argv.subnetGroup,
             backupRetention: argv.backupRetention,
             deletionProtection: argv.deletionProtection,
-            tags: parseKeyValues(argv.tags),
+            tags: createTags(argv),
         };
         let db;
         try {
@@ -94,7 +94,7 @@ const list = action({
     command: 'list',
     describe: 'List RDS database instances',
     handler: async (argv) => {
-        const dbs = await listDatabases(rdsClient(clientConfig(argv)));
+        const dbs = await inProject(argv, await listDatabases(rdsClient(clientConfig(argv))), (db) => db.id);
         print(argv, argv.output === 'json' ? dbs : dbs.map(({ id, engine, version, class: cls, status, storageGb, endpoint }) => ({
             id, engine, version, class: cls, status, storageGb, endpoint,
         })), 'No databases found.');

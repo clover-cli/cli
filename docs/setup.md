@@ -26,7 +26,7 @@ Clover needs an IAM user with an access key. Setting it up once with the policy 
     {
       "Sid": "ListResources",
       "Effect": "Allow",
-      "Action": ["tag:GetResources"],
+      "Action": ["tag:GetResources", "tag:TagResources"],
       "Resource": "*"
     },
     {
