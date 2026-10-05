@@ -184,6 +184,12 @@ export const COMMAND_ACTIONS: Record<string, Record<string, string[]>> = {
         delete: ['lambda:DeleteFunction'],
         invoke: ['lambda:InvokeFunction'],
     },
+    project: {
+        get: ['tag:GetResources'],
+        overview: ['tag:GetResources', 'ec2:DescribeInstances', 'rds:DescribeDBInstances', 'dynamodb:ListTables', 's3:ListAllMyBuckets', 'lambda:ListFunctions'],
+        // Plus the tagging permission of each resource's service, e.g. ec2:CreateTags.
+        add: ['tag:TagResources'],
+    },
 };
 
 export const SERVICES = Object.keys(COMMAND_ACTIONS);

@@ -1,3 +1,6 @@
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { afterEach, beforeEach, vi } from 'vitest';
 
 /**
@@ -25,6 +28,8 @@ vi.mock('../src/utils', async (importOriginal) => ({
 }));
 
 beforeEach(() => {
+    // Commands read ~/.config/clover/projects.json; tests get an empty config dir instead.
+    vi.stubEnv('XDG_CONFIG_HOME', mkdtempSync(path.join(tmpdir(), 'clover-')));
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'table').mockImplementation(() => {});

@@ -199,8 +199,9 @@ async function listOtherTaggedResources(config: AwsClientConfig): Promise<Map<st
  * Each service is listed independently: if one fails (e.g. missing IAM permission) its entry
  * carries an `error` and the others are still returned.
  */
-export async function listAwsResources(): Promise<AwsResourceInventory> {
-    const config = getAwsClientConfig();
+export async function listAwsResources(region?: string): Promise<AwsResourceInventory> {
+    const base = getAwsClientConfig();
+    const config = region ? { ...base, region } : base;
 
     const dedicated: [string, (c: AwsClientConfig) => Promise<AwsResource[]>][] = [
         ['EC2', listEc2Instances],
