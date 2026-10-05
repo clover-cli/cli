@@ -20,6 +20,7 @@ Run all three before you finish.
 - `src/commands/aws/shared.ts`: helpers for every command: `action()`, `print()`, `confirm()`, and more.
 - `src/provider/aws-services/<service>.ts`: the AWS SDK calls. They return plain objects.
 - `src/credentials.ts`, `src/provider/aws.ts`: credentials, read from `AWS_*` env vars.
+- `src/projects.ts`: the local project store (`~/.config/clover/projects.json`). `src/commands/project.ts`: `clover project ...`.
 - `docs/`: user docs and the man page.
 
 ## Rules
@@ -27,6 +28,7 @@ Run all three before you finish.
 - Only `src/provider/` talks to AWS.
 - Define actions with `action()` from `shared.ts`.
 - Print with `print()` and `info()`. Support `--output json`.
+- AWS `create` actions pass `tags: createTags(argv)`, and `list` actions wrap their result in `inProject(argv, items, idOf)`, so they follow the current project.
 - Ask with `confirm()` before deleting. `--yes` skips the prompt.
 - On error, just throw. `action()` prints the message and sets exit code 1.
 - Tests never call AWS. Use `fakeClient()` and `runCli()` from `test/helpers.ts`.
@@ -57,3 +59,4 @@ Examples: `add: lambda commands`, `fix-docs: src/index`.
 4. Add its permissions to `COMMAND_ACTIONS` in `src/provider/aws-services/iam.ts`.
 5. Add tests in `test/provider/aws-services/` and `test/commands/aws/`.
 6. Document it in `docs/aws.md` and add its IAM policy to `docs/setup.md`.
+7. Use `createTags(argv)` in `create` and `inProject()` in `list`, and add the service to the `project-tags` and `project-filter` tests.

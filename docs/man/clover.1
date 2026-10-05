@@ -1,4 +1,4 @@
-.TH CLOVER 1 "September 2026" "@clover-cli/cli" "User Commands"
+.TH CLOVER 1 "October 2026" "@clover-cli/cli" "User Commands"
 .SH NAME
 clover \- inspect and manage your cloud accounts from the terminal
 .SH SYNOPSIS
@@ -21,6 +21,11 @@ clover \- inspect and manage your cloud accounts from the terminal
 .B clover aws
 .RB { ec2 | rds | dynamodb | s3 | lambda }
 .I action
+.RI [ name ]
+.RI [ options ]
+.br
+.B clover project
+.RB { create | list | get | delete | use | add | overview }
 .RI [ name ]
 .RI [ options ]
 .br
@@ -112,9 +117,11 @@ some have more (for example
 Each accepts
 .BI \-\-region " region"\fR,
 .B \-\-output table\fR|\fBjson
-and
 .BI \-\-config " file.json"\fR,
-which reads any option from a JSON file so a whole setup runs as one command.
+which reads any option from a JSON file so a whole setup runs as one command,
+and
+.BI \-\-project " name"\fR,
+the Clover project to act on (default: the current one).
 Deletes ask for confirmation unless
 .B \-\-yes
 is given, and require it when not run in a terminal.
@@ -123,6 +130,32 @@ Run any action with
 for its options, or see
 .I docs/aws.md
 in the source repository.
+.TP
+.B project
+Group the resources of one app into a project.
+.B create
+and
+.B delete
+manage projects (deleting keeps the resources),
+.B list
+and
+.B get
+show them,
+.B use
+sets the current project
+.RB ( \-\-none
+clears it),
+.B add
+brings existing resources in by ARN, and
+.B overview
+shows totals per service and per project.
+While a project is current, AWS
+.B create
+commands tag new resources with
+.BR clover:project=\fIname\fR ,
+and
+.B list
+commands show only that project's resources.
 .TP
 .B completion
 Print a bash/zsh completion script.
@@ -182,6 +215,15 @@ Used when
 is not set.
 If neither is set, the region is
 .BR us\-east\-1 .
+.TP
+.B XDG_CONFIG_HOME
+Where the projects file is kept.
+Defaults to
+.IR ~/.config .
+.SH FILES
+.TP
+.I ~/.config/clover/projects.json
+The saved projects and the current project.
 .SH EXIT STATUS
 .TP
 .B 0
