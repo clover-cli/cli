@@ -118,6 +118,15 @@ export async function inProject<T>(argv: { project?: string; region?: string }, 
     return items.filter((item) => ids.has(idOf(item)));
 }
 
+export function groupBy<T>(items: T[], keyOf: (item: T) => string): Map<string, T[]> {
+    const groups = new Map<string, T[]>();
+    for (const item of items) {
+        const key = keyOf(item);
+        groups.set(key, [...(groups.get(key) ?? []), item]);
+    }
+    return groups;
+}
+
 /** A value given inline, or read from a file with the @path prefix (e.g. --user-data @setup.sh). */
 export function readText(value: string): string {
     return value.startsWith('@') ? readFileSync(value.slice(1), 'utf8') : value;

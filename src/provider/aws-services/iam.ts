@@ -127,6 +127,7 @@ export async function listPolicies(client: IAMClient, principal: Principal): Pro
 export const COMMAND_ACTIONS: Record<string, Record<string, string[]>> = {
     ec2: {
         list: ['ec2:DescribeInstances'],
+        summary: ['ec2:DescribeInstances', 'ec2:DescribeInstanceTypes'],
         get: ['ec2:DescribeInstances'],
         // Image aliases (al2023, ubuntu-24.04, ...) are resolved by EC2 through public SSM parameters.
         create: ['ec2:RunInstances', 'ec2:CreateTags', 'ec2:DescribeInstances', 'ssm:GetParameters'],

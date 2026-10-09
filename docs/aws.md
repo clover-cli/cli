@@ -92,13 +92,14 @@ Unknown keys are rejected, so a typo in the file fails before anything is create
 ## EC2
 
 ```sh
-clover aws ec2 <create|list|get|update|delete|start|stop|reboot>
+clover aws ec2 <create|list|summary|get|update|delete|start|stop|reboot>
 ```
 
 | Action | What it does |
 | --- | --- |
 | `create` | Launch one or more instances |
 | `list` | List instances, optionally filtered by state or tag |
+| `summary` | Count instances by type, with how many run and each type's vCPUs and memory |
 | `get <id>` | Show one instance |
 | `update <id>` | Change the instance type, tags or termination protection |
 | `delete <ids..>` | Terminate instances |

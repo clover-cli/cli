@@ -1,7 +1,7 @@
 import type { EC2Client } from '@aws-sdk/client-ec2';
 import { waitUntilInstanceStopped } from '@aws-sdk/client-ec2';
 import { describe, expect, it, vi } from 'vitest';
-import { createInstances, IMAGE_ALIASES, terminateInstances, updateInstance } from '../../../src/provider/aws-services/ec2';
+import { createInstances, describeInstanceTypes, IMAGE_ALIASES, terminateInstances, updateInstance } from '../../../src/provider/aws-services/ec2';
 import { fakeClient } from '../../helpers';
 
 vi.mock('@aws-sdk/client-ec2', async (importOriginal) => ({
@@ -53,6 +53,23 @@ describe('createInstances', () => {
         await createInstances(client, { image: 'ami-123', instanceType: 't3.micro', volumeSize: 30 });
 
         expect(sent()[1].input.BlockDeviceMappings).toEqual([{ DeviceName: '/dev/sda1', Ebs: { VolumeSize: 30, VolumeType: 'gp3' } }]);
+    });
+});
+
+describe('describeInstanceTypes', () => {
+    it('returns vCPUs and memory in GiB', async () => {
+        const { client } = fakeClient<EC2Client>({
+            DescribeInstanceTypesCommand: { InstanceTypes: [{ InstanceType: 't3.micro', VCpuInfo: { DefaultVCpus: 2 }, MemoryInfo: { SizeInMiB: 1024 } }] },
+        });
+
+        expect(await describeInstanceTypes(client, ['t3.micro'])).toEqual([{ type: 't3.micro', vcpus: 2, memoryGib: 1 }]);
+    });
+
+    it('sends nothing without types', async () => {
+        const { client, send } = fakeClient<EC2Client>();
+
+        expect(await describeInstanceTypes(client, [])).toEqual([]);
+        expect(send).not.toHaveBeenCalled();
     });
 });
 

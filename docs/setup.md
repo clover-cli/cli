@@ -34,6 +34,7 @@ Clover needs an IAM user with an access key. Setting it up once with the policy 
       "Effect": "Allow",
       "Action": [
         "ec2:DescribeInstances",
+        "ec2:DescribeInstanceTypes",
         "ec2:DescribeImages",
         "ec2:RunInstances",
         "ec2:CreateTags",
