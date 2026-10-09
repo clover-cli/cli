@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { getAwsClientConfig, listAwsResources } from '../../../src/provider/aws';
 import { listTables } from '../../../src/provider/aws-services/dynamodb';
-import { listInstances } from '../../../src/provider/aws-services/ec2';
+import { describeInstanceTypes, listInstances } from '../../../src/provider/aws-services/ec2';
 import { listFunctions } from '../../../src/provider/aws-services/lambda';
 import { listDatabases } from '../../../src/provider/aws-services/rds';
 import { listBuckets } from '../../../src/provider/aws-services/s3';
@@ -39,6 +39,31 @@ describe('project filter on list', () => {
         expect(listProjectResources).toHaveBeenCalledWith(undefined, 'shop');
         expect(logged()).toContain('mine');
         expect(logged()).not.toContain('other');
+    });
+
+    it('aws ec2 summary counts only the current project\'s instances', async () => {
+        vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
+        vi.mocked(listProjectResources).mockResolvedValue([inShop('mine')]);
+        vi.mocked(listInstances).mockResolvedValue([{ id: 'mine', type: 't3.micro' }, { id: 'other', type: 'm5.large' }]);
+        vi.mocked(describeInstanceTypes).mockResolvedValue([]);
+        createProject('shop');
+        useProject('shop');
+
+        await runCli('aws ec2 summary --output json');
+
+        expect(JSON.parse(logged())).toEqual([{ type: 't3.micro', count: 1, running: 0 }]);
+    });
+
+    it('aws rds summary counts only the current project\'s databases', async () => {
+        vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
+        vi.mocked(listProjectResources).mockResolvedValue([inShop('mine')]);
+        vi.mocked(listDatabases).mockResolvedValue([{ id: 'mine', engine: 'postgres' }, { id: 'other', engine: 'mysql' }]);
+        createProject('shop');
+        useProject('shop');
+
+        await runCli('aws rds summary --output json');
+
+        expect(JSON.parse(logged())).toEqual([{ engine: 'postgres', count: 1, available: 0, storageGb: 0 }]);
     });
 
     it('lists everything when no project is active', async () => {

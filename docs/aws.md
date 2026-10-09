@@ -10,6 +10,7 @@ Clover can create, read, update and delete resources in these AWS services:
 | [S3](#s3) | `clover aws s3` | Buckets and objects |
 | [Lambda](#lambda) | `clover aws lambda` | Functions |
 | [IAM](#iam) | `clover aws iam` | Your own policies and permissions (read-only) |
+| [Cost](#cost) | `clover aws cost` | The bill per month (read-only) |
 
 Every command follows the same shape:
 
@@ -92,13 +93,14 @@ Unknown keys are rejected, so a typo in the file fails before anything is create
 ## EC2
 
 ```sh
-clover aws ec2 <create|list|get|update|delete|start|stop|reboot>
+clover aws ec2 <create|list|summary|get|update|delete|start|stop|reboot>
 ```
 
 | Action | What it does |
 | --- | --- |
 | `create` | Launch one or more instances |
 | `list` | List instances, optionally filtered by state or tag |
+| `summary` | Count instances by type, with how many run and each type's vCPUs and memory |
 | `get <id>` | Show one instance |
 | `update <id>` | Change the instance type, tags or termination protection |
 | `delete <ids..>` | Terminate instances |
@@ -138,6 +140,9 @@ clover aws ec2 create --image ubuntu-24.04 --type t3.small --name web \
 | `--state` | Only these states: `pending`, `running`, `stopping`, `stopped`, ... |
 | `--tag` | Only instances with this tag, `Key=Value` (repeatable) |
 
+The table shows each running instance's uptime since its last start; `--output json` has the
+start time as `launched`.
+
 ### `update <id>`
 
 | Option | Description |
@@ -165,13 +170,14 @@ clover aws ec2 update i-0abc123 --type t3.large --restart
 ## RDS
 
 ```sh
-clover aws rds <create|list|get|update|delete|start|stop|reboot>
+clover aws rds <create|list|summary|get|update|delete|start|stop|reboot>
 ```
 
 | Action | What it does |
 | --- | --- |
 | `create <id>` | Create a database instance |
 | `list` | List database instances |
+| `summary` | Count instances by engine and class, with how many are available and their total storage |
 | `get <id>` | Show one instance, including its endpoint and port |
 | `update <id>` | Resize, change storage, password, backups, protection, tags, ... |
 | `delete <id>` | Delete an instance, optionally with a final snapshot |
@@ -447,6 +453,16 @@ allows some buckets or tables shows those commands as not allowed.
 
 Both work for IAM users and for assumed roles. The root user has no policies to list.
 
+## Cost
+
+```sh
+clover aws cost monthly [--months 6]
+```
+
+Shows the bill per month from Cost Explorer, this month included so far. Run from an
+organization's management account, it covers every account in the organization. Cost Explorer has
+to be enabled once in the Billing console, and the call costs $0.01.
+
 ## IAM permissions
 
 The simplest setup is the `CloverCLI` policy in [setup.md](setup.md#getting-aws-credentials), which
@@ -465,6 +481,7 @@ need. A few extras worth knowing:
   `iam:ListAttachedGroupPolicies` and `iam:ListGroupPolicies` (for a role: `iam:ListAttachedRolePolicies`,
   `iam:ListRolePolicies`). `iam check` needs `iam:SimulatePrincipalPolicy` (and `iam:GetRole` for a role).
   `IAMReadOnlyAccess` covers them.
+- `cost monthly` needs `ce:GetCostAndUsage`.
 
 Run `clover aws iam check` to see which commands your credentials allow. If a permission is missing,
 the command prints AWS's error and exits with code 1.

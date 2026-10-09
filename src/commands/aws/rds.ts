@@ -14,7 +14,7 @@ import {
 } from '../../provider/aws-services/rds';
 import { ec2Client } from '../../provider/aws-services/ec2';
 import { isMissingDefaultNetwork, restoreDefaultNetwork } from '../../provider/aws-services/network';
-import { action, createTags, inProject, clientConfig, confirm, info, parseKeyValues, print, serviceBuilder, tagsOption, waitOption, yesOption } from './shared';
+import { action, createTags, inProject, clientConfig, confirm, groupBy, info, parseKeyValues, print, serviceBuilder, tagsOption, waitOption, yesOption } from './shared';
 
 const idPositional = { id: { type: 'string', describe: 'Database instance identifier' } } as const;
 
@@ -98,6 +98,23 @@ const list = action({
         print(argv, argv.output === 'json' ? dbs : dbs.map(({ id, engine, version, class: cls, status, storageGb, endpoint }) => ({
             id, engine, version, class: cls, status, storageGb, endpoint,
         })), 'No databases found.');
+    },
+});
+
+const summary = action({
+    command: 'summary',
+    describe: 'Count RDS database instances by engine and class',
+    handler: async (argv) => {
+        const dbs = await inProject(argv, await listDatabases(rdsClient(clientConfig(argv))), (db) => db.id);
+        const rows = [...groupBy(dbs, (db) => `${db.engine} ${db.class}`).values()].map((group) => ({
+            engine: group[0].engine,
+            class: group[0].class,
+            count: group.length,
+            available: group.filter((db) => db.status === 'available').length,
+            storageGb: group.reduce((total, db) => total + (db.storageGb ?? 0), 0),
+        }));
+        info(`${dbs.length} database(s).`);
+        print(argv, rows, 'No databases found.');
     },
 });
 
@@ -232,7 +249,7 @@ const reboot = action({
 });
 
 /**
- * clover aws rds <create|list|get|update|delete|start|stop|reboot>
+ * clover aws rds <create|list|summary|get|update|delete|start|stop|reboot>
  */
 const rdsCommand: CommandModule = {
     command: 'rds',
@@ -240,13 +257,14 @@ const rdsCommand: CommandModule = {
     builder: (yargs: Argv) => serviceBuilder(yargs)
         .command(create)
         .command(list)
+        .command(summary)
         .command(get)
         .command(update)
         .command(remove)
         .command(start)
         .command(stop)
         .command(reboot)
-        .demandCommand(1, 'Choose an action: create, list, get, update, delete, start, stop or reboot'),
+        .demandCommand(1, 'Choose an action: create, list, summary, get, update, delete, start, stop or reboot'),
     handler: () => {},
 };
 

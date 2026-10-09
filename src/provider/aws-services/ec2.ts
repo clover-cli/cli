@@ -2,6 +2,7 @@ import {
     CreateTagsCommand,
     DeleteTagsCommand,
     DescribeImagesCommand,
+    DescribeInstanceTypesCommand,
     DescribeInstancesCommand,
     EC2Client,
     ModifyInstanceAttributeCommand,
@@ -179,6 +180,25 @@ export async function getInstance(client: EC2Client, id: string): Promise<Ec2Sum
     const instance = result.Reservations?.[0]?.Instances?.[0];
     if (!instance) throw new Error(`Instance ${id} not found.`);
     return summarize(instance);
+}
+
+export interface Ec2TypeSpecs {
+    type: string;
+    vcpus?: number;
+    memoryGib?: number;
+}
+
+export async function describeInstanceTypes(client: EC2Client, types: string[]): Promise<Ec2TypeSpecs[]> {
+    if (types.length === 0) return [];
+    const result = await client.send(new DescribeInstanceTypesCommand({
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+        InstanceTypes: types as _InstanceType[],
+    }));
+    return (result.InstanceTypes ?? []).map((t) => ({
+        type: t.InstanceType ?? 'unknown',
+        vcpus: t.VCpuInfo?.DefaultVCpus,
+        memoryGib: t.MemoryInfo?.SizeInMiB === undefined ? undefined : t.MemoryInfo.SizeInMiB / 1024,
+    }));
 }
 
 export interface Ec2UpdateOptions {

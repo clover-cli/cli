@@ -4,7 +4,7 @@ import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { getAwsClientConfig } from '../../../src/provider/aws';
 import {
-    createInstances, ec2Client, listInstances, startInstances, terminateInstances, updateInstance, waitForInstances,
+    createInstances, describeInstanceTypes, ec2Client, listInstances, startInstances, terminateInstances, updateInstance, waitForInstances,
 } from '../../../src/provider/aws-services/ec2';
 import { errored, logged, runCli, testConfig } from '../../helpers';
 
@@ -72,6 +72,43 @@ describe('clover aws ec2', () => {
 
         expect(listInstances).toHaveBeenCalledWith(undefined, { states: ['running'], tags: { env: 'dev' } });
         expect(JSON.parse(logged())).toEqual([{ id: 'i-1', tags: { env: 'dev' } }]);
+    });
+
+    it('shows how long running instances have been up', async () => {
+        vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-01-03T05:30:00Z') });
+        vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
+        vi.mocked(listInstances).mockResolvedValue([
+            { id: 'i-1', state: 'running', launched: '2026-01-01T00:00:00Z' },
+            { id: 'i-2', state: 'stopped', launched: '2026-01-01T00:00:00Z' },
+        ]);
+
+        await runCli('aws ec2 list');
+
+        vi.useRealTimers();
+        expect(console.table).toHaveBeenCalledWith([
+            expect.objectContaining({ id: 'i-1', uptime: '2d 5h' }),
+            expect.objectContaining({ id: 'i-2', uptime: undefined }),
+        ]);
+    });
+
+    it('counts instances by type with their specs, skipping terminated ones', async () => {
+        vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
+        vi.mocked(listInstances).mockResolvedValue([
+            { id: 'i-1', type: 't3.micro', state: 'running' },
+            { id: 'i-2', type: 't3.micro', state: 'stopped' },
+            { id: 'i-3', type: 'm5.large', state: 'running' },
+            { id: 'i-4', type: 'm5.large', state: 'terminated' },
+        ]);
+        vi.mocked(describeInstanceTypes).mockResolvedValue([{ type: 't3.micro', vcpus: 2, memoryGib: 1 }]);
+
+        await runCli('aws ec2 summary --output json');
+
+        expect(describeInstanceTypes).toHaveBeenCalledWith(undefined, ['t3.micro', 'm5.large']);
+        expect(JSON.parse(logged())).toEqual([
+            { type: 't3.micro', count: 2, running: 1, vcpus: 2, memoryGib: 1 },
+            { type: 'm5.large', count: 1, running: 1 },
+        ]);
+        expect(errored()).toContain('3 instance(s).');
     });
 
     it('updates the type with --restart and reports progress', async () => {

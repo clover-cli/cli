@@ -41,6 +41,7 @@
     "lint:fix": "oxlint --type-aware --fix"
   },
   "dependencies": {
+    "@aws-sdk/client-cost-explorer": "^3.1148.0",
     "@aws-sdk/client-dynamodb": "^3.1140.0",
     "@aws-sdk/client-ec2": "^3.1140.0",
     "@aws-sdk/client-iam": "^3.1141.0",

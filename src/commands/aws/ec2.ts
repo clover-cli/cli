@@ -2,6 +2,7 @@ import type { Argv, CommandModule } from 'yargs';
 import {
     IMAGE_ALIASES,
     createInstances,
+    describeInstanceTypes,
     ec2Client,
     getInstance,
     listInstances,
@@ -14,7 +15,7 @@ import {
     type Ec2Summary,
 } from '../../provider/aws-services/ec2';
 import {
-    action, createTags, inProject, clientConfig, confirm, info, parseKeyValues, print, readText, serviceBuilder, tagsOption, waitOption, yesOption,
+    action, createTags, inProject, clientConfig, confirm, groupBy, info, parseKeyValues, print, readText, serviceBuilder, tagsOption, waitOption, yesOption,
 } from './shared';
 
 const idsPositional = { ids: { type: 'string', array: true, describe: 'Instance ID(s)' } } as const;
@@ -73,8 +74,16 @@ const create = action({
 });
 
 /** The columns shown in tables. */
-function row({ id, name, type, state, az, publicIp, privateIp }: Ec2Summary) {
-    return { id, name, type, state, az, publicIp, privateIp };
+function row(instance: Ec2Summary) {
+    const { id, name, type, state, az, publicIp, privateIp } = instance;
+    return { id, name, type, state, az, publicIp, privateIp, uptime: uptime(instance) };
+}
+
+/** EC2 resets LaunchTime on every start, so for a running instance it's the time since its last start. */
+function uptime({ state, launched }: Ec2Summary): string | undefined {
+    if (state !== 'running' || !launched) return undefined;
+    const hours = Math.floor((Date.now() - Date.parse(launched)) / 3_600_000);
+    return `${Math.floor(hours / 24)}d ${hours % 24}h`;
 }
 
 const list = action({
@@ -90,6 +99,30 @@ const list = action({
             tags: parseKeyValues(argv.tag),
         }), (i) => i.id);
         print(argv, argv.output === 'json' ? instances : instances.map(row), 'No instances found.');
+    },
+});
+
+const summary = action({
+    command: 'summary',
+    describe: 'Count EC2 instances by type, with their specs',
+    handler: async (argv) => {
+        const client = ec2Client(clientConfig(argv));
+        const instances = (await inProject(argv, await listInstances(client), (i) => i.id))
+            .filter((i) => i.state !== 'terminated');
+        const byType = groupBy(instances, (i) => i.type ?? 'unknown');
+        const specs = await describeInstanceTypes(client, [...byType.keys()]);
+        const rows = [...byType].map(([type, group]) => {
+            const spec = specs.find((s) => s.type === type);
+            return {
+                type,
+                count: group.length,
+                running: group.filter((i) => i.state === 'running').length,
+                vcpus: spec?.vcpus,
+                memoryGib: spec?.memoryGib,
+            };
+        });
+        info(`${instances.length} instance(s).`);
+        print(argv, rows, 'No instances found.');
     },
 });
 
@@ -191,7 +224,7 @@ const reboot = action({
 });
 
 /**
- * clover aws ec2 <create|list|get|update|delete|start|stop|reboot>
+ * clover aws ec2 <create|list|summary|get|update|delete|start|stop|reboot>
  */
 const ec2Command: CommandModule = {
     command: 'ec2',
@@ -199,13 +232,14 @@ const ec2Command: CommandModule = {
     builder: (yargs: Argv) => serviceBuilder(yargs)
         .command(create)
         .command(list)
+        .command(summary)
         .command(get)
         .command(update)
         .command(remove)
         .command(start)
         .command(stop)
         .command(reboot)
-        .demandCommand(1, 'Choose an action: create, list, get, update, delete, start, stop or reboot'),
+        .demandCommand(1, 'Choose an action: create, list, summary, get, update, delete, start, stop or reboot'),
     handler: () => {},
 };
 
