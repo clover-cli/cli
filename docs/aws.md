@@ -139,6 +139,9 @@ clover aws ec2 create --image ubuntu-24.04 --type t3.small --name web \
 | `--state` | Only these states: `pending`, `running`, `stopping`, `stopped`, ... |
 | `--tag` | Only instances with this tag, `Key=Value` (repeatable) |
 
+The table shows each running instance's uptime since its last start; `--output json` has the
+start time as `launched`.
+
 ### `update <id>`
 
 | Option | Description |

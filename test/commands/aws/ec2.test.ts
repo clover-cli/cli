@@ -74,6 +74,23 @@ describe('clover aws ec2', () => {
         expect(JSON.parse(logged())).toEqual([{ id: 'i-1', tags: { env: 'dev' } }]);
     });
 
+    it('shows how long running instances have been up', async () => {
+        vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-01-03T05:30:00Z') });
+        vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
+        vi.mocked(listInstances).mockResolvedValue([
+            { id: 'i-1', state: 'running', launched: '2026-01-01T00:00:00Z' },
+            { id: 'i-2', state: 'stopped', launched: '2026-01-01T00:00:00Z' },
+        ]);
+
+        await runCli('aws ec2 list');
+
+        vi.useRealTimers();
+        expect(console.table).toHaveBeenCalledWith([
+            expect.objectContaining({ id: 'i-1', uptime: '2d 5h' }),
+            expect.objectContaining({ id: 'i-2', uptime: undefined }),
+        ]);
+    });
+
     it('counts instances by type with their specs, skipping terminated ones', async () => {
         vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
         vi.mocked(listInstances).mockResolvedValue([

@@ -74,8 +74,16 @@ const create = action({
 });
 
 /** The columns shown in tables. */
-function row({ id, name, type, state, az, publicIp, privateIp }: Ec2Summary) {
-    return { id, name, type, state, az, publicIp, privateIp };
+function row(instance: Ec2Summary) {
+    const { id, name, type, state, az, publicIp, privateIp } = instance;
+    return { id, name, type, state, az, publicIp, privateIp, uptime: uptime(instance) };
+}
+
+/** EC2 resets LaunchTime on every start, so for a running instance it's the time since its last start. */
+function uptime({ state, launched }: Ec2Summary): string | undefined {
+    if (state !== 'running' || !launched) return undefined;
+    const hours = Math.floor((Date.now() - Date.parse(launched)) / 3_600_000);
+    return `${Math.floor(hours / 24)}d ${hours % 24}h`;
 }
 
 const list = action({
