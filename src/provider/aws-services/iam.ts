@@ -186,6 +186,9 @@ export const COMMAND_ACTIONS: Record<string, Record<string, string[]>> = {
         delete: ['lambda:DeleteFunction'],
         invoke: ['lambda:InvokeFunction'],
     },
+    cost: {
+        monthly: ['ce:GetCostAndUsage'],
+    },
     project: {
         get: ['tag:GetResources'],
         overview: ['tag:GetResources', 'ec2:DescribeInstances', 'rds:DescribeDBInstances', 'dynamodb:ListTables', 's3:ListAllMyBuckets', 'lambda:ListFunctions'],

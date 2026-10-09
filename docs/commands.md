@@ -35,6 +35,7 @@ and SDKs use. Nothing is written to disk.
 | `clover aws s3 <action>` | Create, list, update and delete S3 buckets and objects |
 | `clover aws lambda <action>` | Create, list, update, delete and invoke Lambda functions |
 | `clover aws iam <policies\|check>` | Show your IAM policies, and which Clover commands they allow |
+| `clover aws cost monthly` | Show the AWS bill per month |
 
 See [aws.md](aws.md) for every service action and option, including how to do a whole setup in one
 command with `--config`.

@@ -157,6 +157,12 @@ Clover needs an IAM user with an access key. Setting it up once with the policy 
       "Condition": { "StringEquals": { "iam:PassedToService": "lambda.amazonaws.com" } }
     },
     {
+      "Sid": "Cost",
+      "Effect": "Allow",
+      "Action": "ce:GetCostAndUsage",
+      "Resource": "*"
+    },
+    {
       "Sid": "IAMInspect",
       "Effect": "Allow",
       "Action": [

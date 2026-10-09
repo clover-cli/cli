@@ -10,6 +10,7 @@ Clover can create, read, update and delete resources in these AWS services:
 | [S3](#s3) | `clover aws s3` | Buckets and objects |
 | [Lambda](#lambda) | `clover aws lambda` | Functions |
 | [IAM](#iam) | `clover aws iam` | Your own policies and permissions (read-only) |
+| [Cost](#cost) | `clover aws cost` | The bill per month (read-only) |
 
 Every command follows the same shape:
 
@@ -452,6 +453,16 @@ allows some buckets or tables shows those commands as not allowed.
 
 Both work for IAM users and for assumed roles. The root user has no policies to list.
 
+## Cost
+
+```sh
+clover aws cost monthly [--months 6]
+```
+
+Shows the bill per month from Cost Explorer, this month included so far. Run from an
+organization's management account, it covers every account in the organization. Cost Explorer has
+to be enabled once in the Billing console, and the call costs $0.01.
+
 ## IAM permissions
 
 The simplest setup is the `CloverCLI` policy in [setup.md](setup.md#getting-aws-credentials), which
@@ -470,6 +481,7 @@ need. A few extras worth knowing:
   `iam:ListAttachedGroupPolicies` and `iam:ListGroupPolicies` (for a role: `iam:ListAttachedRolePolicies`,
   `iam:ListRolePolicies`). `iam check` needs `iam:SimulatePrincipalPolicy` (and `iam:GetRole` for a role).
   `IAMReadOnlyAccess` covers them.
+- `cost monthly` needs `ce:GetCostAndUsage`.
 
 Run `clover aws iam check` to see which commands your credentials allow. If a permission is missing,
 the command prints AWS's error and exits with code 1.
