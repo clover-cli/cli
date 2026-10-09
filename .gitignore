@@ -31,3 +31,4 @@ Thumbs.db
 coverage/
 # Local credentials database (contains secrets)
 db/*.sqlite
+.vscode
