@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { getAwsClientConfig } from '../../../src/provider/aws';
 import {
-    createDatabase, deleteDatabase, getDatabase, updateDatabase, waitForDatabase,
+    createDatabase, deleteDatabase, getDatabase, listDatabases, updateDatabase, waitForDatabase,
 } from '../../../src/provider/aws-services/rds';
 import { restoreDefaultNetwork } from '../../../src/provider/aws-services/network';
-import { errored, runCli, testConfig } from '../../helpers';
+import { errored, logged, runCli, testConfig } from '../../helpers';
 
 vi.mock('../../../src/provider/aws-services/rds');
 vi.mock('../../../src/provider/aws-services/network', async (importOriginal) => ({
@@ -15,6 +15,23 @@ vi.mock('../../../src/provider/aws-services/network', async (importOriginal) => 
 const noDefaultSubnet = new Error('No default subnet detected in VPC. Please contact AWS Support to recreate default Subnets.');
 
 describe('clover aws rds', () => {
+    it('counts databases by engine and class', async () => {
+        vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
+        vi.mocked(listDatabases).mockResolvedValue([
+            { id: 'a', engine: 'postgres', class: 'db.t3.micro', status: 'available', storageGb: 20 },
+            { id: 'b', engine: 'postgres', class: 'db.t3.micro', status: 'stopped', storageGb: 30 },
+            { id: 'c', engine: 'mysql', class: 'db.t3.small', status: 'available', storageGb: 20 },
+        ]);
+
+        await runCli('aws rds summary --output json');
+
+        expect(JSON.parse(logged())).toEqual([
+            { engine: 'postgres', class: 'db.t3.micro', count: 2, available: 1, storageGb: 50 },
+            { engine: 'mysql', class: 'db.t3.small', count: 1, available: 1, storageGb: 20 },
+        ]);
+        expect(errored()).toContain('3 database(s).');
+    });
+
     it('creates a Postgres database with defaults and waits for it', async () => {
         vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
         vi.mocked(createDatabase).mockResolvedValue({ id: 'app-db', status: 'creating' });

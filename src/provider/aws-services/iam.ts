@@ -139,6 +139,7 @@ export const COMMAND_ACTIONS: Record<string, Record<string, string[]>> = {
     },
     rds: {
         list: ['rds:DescribeDBInstances'],
+        summary: ['rds:DescribeDBInstances'],
         get: ['rds:DescribeDBInstances'],
         create: ['rds:CreateDBInstance', 'rds:AddTagsToResource'],
         // Only without --password: AWS generates the password and keeps it in Secrets Manager.

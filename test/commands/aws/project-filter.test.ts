@@ -54,6 +54,18 @@ describe('project filter on list', () => {
         expect(JSON.parse(logged())).toEqual([{ type: 't3.micro', count: 1, running: 0 }]);
     });
 
+    it('aws rds summary counts only the current project\'s databases', async () => {
+        vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
+        vi.mocked(listProjectResources).mockResolvedValue([inShop('mine')]);
+        vi.mocked(listDatabases).mockResolvedValue([{ id: 'mine', engine: 'postgres' }, { id: 'other', engine: 'mysql' }]);
+        createProject('shop');
+        useProject('shop');
+
+        await runCli('aws rds summary --output json');
+
+        expect(JSON.parse(logged())).toEqual([{ engine: 'postgres', count: 1, available: 0, storageGb: 0 }]);
+    });
+
     it('lists everything when no project is active', async () => {
         vi.mocked(getAwsClientConfig).mockReturnValue(testConfig);
         vi.mocked(listBuckets).mockResolvedValue([{ name: 'mine' }, { name: 'other' }]);

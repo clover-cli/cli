@@ -169,13 +169,14 @@ clover aws ec2 update i-0abc123 --type t3.large --restart
 ## RDS
 
 ```sh
-clover aws rds <create|list|get|update|delete|start|stop|reboot>
+clover aws rds <create|list|summary|get|update|delete|start|stop|reboot>
 ```
 
 | Action | What it does |
 | --- | --- |
 | `create <id>` | Create a database instance |
 | `list` | List database instances |
+| `summary` | Count instances by engine and class, with how many are available and their total storage |
 | `get <id>` | Show one instance, including its endpoint and port |
 | `update <id>` | Resize, change storage, password, backups, protection, tags, ... |
 | `delete <id>` | Delete an instance, optionally with a final snapshot |
