@@ -40,6 +40,8 @@ const VERSION = 20;
 const MADE_BY_UNIX = (3 << 8) | VERSION;
 const FILE_MODE = (0o100644 << 16) >>> 0;
 
+// todo: support symlinks, empty directories, and other file types (e.g. sockets, fifos, devices) if needed
+// todo: also, refactor this method so that it can be used to create a zip file on disk, not just in memory
 export function zipPath(source: string): Buffer {
     const entries = collect(source);
     if (entries.length === 0) throw new Error(`Nothing to zip in ${source}.`);
