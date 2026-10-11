@@ -15,6 +15,13 @@ npm install -g @clover-cli/cli
 clover --help
 ```
 
+You can also use `bun` to install Clover:
+
+```sh
+bun add -g @clover-cli/cli
+clover --help
+```
+
 Requires Node.js 22.13 or newer.
 
 # Setup
